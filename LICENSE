@@ -1,0 +1,41 @@
+Tentacolous Software License
+
+Copyright (c) 2026 Anthony Medina
+
+1. Grant of Use
+
+Permission is granted to use the Tentacolous software library as a dependency
+in personal, educational, and commercial software projects.
+
+2. Restrictions
+
+The following actions are not permitted without prior written authorization
+from the copyright holder:
+
+- Modifying, adapting, or creating derivative versions of Tentacolous.
+- Redistributing modified versions of Tentacolous.
+- Publishing forks or alternative distributions of Tentacolous.
+- Using the Tentacolous source code to create a competing library or product.
+
+3. Contributions
+
+All improvements, bug fixes, and feature additions intended for Tentacolous
+must be submitted through the official Tentacolous repository or approved
+channels.
+
+The copyright holder retains the right to accept, reject, modify, or license
+any contribution.
+
+4. Ownership
+
+Tentacolous and all related intellectual property remain the exclusive
+property of the copyright holder.
+
+5. Disclaimer
+
+The software is provided "as is", without warranty of any kind.
+
+6. Termination
+
+Any violation of this license automatically terminates the permissions granted
+under this license.

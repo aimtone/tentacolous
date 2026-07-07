@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Tentacolous | Listeners de cambios de base de datos para Spring Boot</title>
+    <meta name="description" content="Tentacolous ejecuta metodos Java cuando PostgreSQL registra INSERT, UPDATE o DELETE, incluso si el cambio viene desde fuera de tu aplicacion.">
+    <meta name="theme-color" content="#061016">
+    <meta property="og:title" content="Tentacolous">
+    <meta property="og:description" content="Listeners de cambios de base de datos para Spring Boot y PostgreSQL.">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="../assets/logoblanco.png">
+    <link rel="icon" href="../assets/logoblanco.png" type="image/png">
+    <link rel="preload" href="../assets/logoblanco.png" as="image">
+    <link rel="stylesheet" href="../assets/styles.css">
+  </head>
+  <body>
+    <header class="site-header">
+      <nav class="nav" aria-label="Principal">
+        <a class="brand" href="index.html" aria-label="Tentacolous home">
+          <img src="../assets/logoblanco.png" alt="">
+          <span>Tentacolous</span>
+        </a>
+        <div class="nav-links">
+          <a href="#features">Lo esencial</a>
+          <a href="#why">Por que existe</a>
+          <a href="#how">Como funciona</a>
+          <a href="#start">Inicio rapido</a>
+          <a class="nav-external" href="https://github.com/aimtone/fusiondb">GitHub</a>
+          <span class="language-switch" aria-label="Selector de idioma">
+            <a class="active" href="index.html">ES</a>
+            <a href="../en/index.html">EN</a>
+          </span>
+        </div>
+      </nav>
+    </header>
+
+    <main id="top">
+      <section class="hero">
+        <div class="reveal">
+          <div class="eyebrow"><span class="pulse"></span> Spring Boot + PostgreSQL</div>
+          <h1><span class="gradient-text">Tentacolous</span></h1>
+          <p class="slogan">Reacciona a cambios reales de base de datos con metodos Java anotados.</p>
+          <p class="hero-copy">
+            Tentacolous detecta <code>INSERT</code>, <code>UPDATE</code> y <code>DELETE</code> desde PostgreSQL, aunque el cambio venga de otra API,
+            un script, una consola SQL o un sistema legacy. Sin eventos JPA ni magia escondida: triggers, tabla de eventos y un poller Spring.
+          </p>
+          <div class="hero-actions" aria-label="Acciones principales">
+            <a class="button primary" href="#start"><span aria-hidden="true">&gt;</span> Empezar</a>
+            <a class="button" href="documentation/"><span aria-hidden="true">#</span> Documentacion</a>
+            <a class="button" href="https://github.com/aimtone/fusiondb"><span aria-hidden="true">^</span> GitHub</a>
+          </div>
+        </div>
+        <div class="hero-visual reveal" aria-hidden="true">
+          <img src="../assets/logoblanco.png" alt="">
+          <div class="terminal">
+            <div class="terminal-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+            <pre><code>@UponInserting(entity = Persona.class)
+public void onPersonaInserted(Persona persona) {
+    notify(persona.getEmail());
+}</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <section id="features" class="section alt">
+        <div class="wrap">
+          <div class="section-head reveal">
+            <span class="section-kicker">Lo esencial</span>
+            <h2>Un puente simple entre PostgreSQL y tu codigo Java.</h2>
+            <p>Esta pagina va al grano: que problema resuelve Tentacolous, como se usa y cuando conviene mirar la documentacion completa.</p>
+          </div>
+          <div class="grid features compact-features">
+            <article class="card reveal">
+              <div class="icon">DB</div>
+              <h3>Cambios fuera de tu app</h3>
+              <p>Detecta cambios hechos por otros sistemas, scripts o herramientas SQL, no solo escrituras hechas por tu servicio Spring.</p>
+            </article>
+            <article class="card reveal">
+              <div class="icon">JA</div>
+              <h3>Listeners anotados</h3>
+              <p>Escribes metodos con <code>@UponInserting</code>, <code>@UponUpdating</code> o <code>@UponDeleting</code> y recibes una entidad Java.</p>
+            </article>
+            <article class="card reveal">
+              <div class="icon">PG</div>
+              <h3>Infraestructura clara</h3>
+              <p>Usa triggers PostgreSQL, <code>db_change_event</code>, estados de procesamiento y reintentos configurables.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="why" class="section">
+        <div class="wrap why">
+          <div class="section-head reveal">
+            <span class="section-kicker">Por que existe</span>
+            <h2>Porque la base tambien habla.</h2>
+            <p>
+              En muchos sistemas, la base de datos recibe cambios desde mas de un lugar. Tentacolous convierte esos cambios en puntos de extension dentro de Spring Boot, sin pretender ser Debezium ni CDC nativo.
+            </p>
+          </div>
+          <div class="principles">
+            <div class="principle reveal">
+              <strong>01</strong>
+              <p><strong>La fuente es PostgreSQL.</strong> El evento nace cuando la tabla cambia.</p>
+            </div>
+            <div class="principle reveal">
+              <strong>02</strong>
+              <p><strong>La reaccion vive en Java.</strong> El listener recibe un objeto de dominio deserializado.</p>
+            </div>
+            <div class="principle reveal">
+              <strong>03</strong>
+              <p><strong>Produccion con control.</strong> Puedes crear, validar o desactivar la gestion automatica de schema.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="how" class="section alt">
+        <div class="wrap">
+          <div class="section-head reveal">
+            <span class="section-kicker">Como funciona</span>
+            <h2>Un flujo corto y observable.</h2>
+            <p>Tentacolous registra listeners, crea o valida infraestructura PostgreSQL, captura cambios y despacha eventos hacia tus metodos.</p>
+          </div>
+          <div class="diagram reveal">
+            <div class="diagram-grid landing-flow" aria-label="Flujo simplificado de Tentacolous">
+              <div class="node"><strong>Tabla PostgreSQL</strong><small>INSERT / UPDATE / DELETE</small></div>
+              <div class="arrow">-&gt;</div>
+              <div class="node"><strong>db_change_event</strong><small>payload JSON + estado</small></div>
+              <div class="arrow">-&gt;</div>
+              <div class="node"><strong>Poller Spring</strong><small>lotes + reintentos</small></div>
+              <div class="arrow">-&gt;</div>
+              <div class="node"><strong>Listener Java</strong><small>@UponInserting, @UponUpdating, @UponDeleting</small></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="start" class="section">
+        <div class="wrap">
+          <div class="section-head reveal">
+            <span class="section-kicker">Inicio rapido</span>
+            <h2>Instala, configura, anota.</h2>
+            <p>La integracion local actual usa Maven local y el artefacto <code>com.aimtone.tentacolous:tentacolous:0.0.1-SNAPSHOT</code>.</p>
+          </div>
+          <div class="examples">
+            <div class="code-block reveal">
+              <div class="code-title"><span>1. Instala la libreria</span><span>terminal</span></div>
+              <pre><code>mvn clean install</code></pre>
+            </div>
+            <div class="code-block reveal">
+              <div class="code-title"><span>2. Agrega la dependencia</span><span>xml</span></div>
+              <pre><code>&lt;dependency&gt;
+  &lt;groupId&gt;com.aimtone.tentacolous&lt;/groupId&gt;
+  &lt;artifactId&gt;tentacolous&lt;/artifactId&gt;
+  &lt;version&gt;0.0.1-SNAPSHOT&lt;/version&gt;
+&lt;/dependency&gt;</code></pre>
+            </div>
+            <div class="code-block reveal">
+              <div class="code-title"><span>3. Configura Tentacolous</span><span>yaml</span></div>
+              <pre><code>tentacolous:
+  enabled: true
+  schema-management: auto
+  event-table: db_change_event
+  poll-interval: 1s</code></pre>
+            </div>
+            <div class="code-block reveal">
+              <div class="code-title"><span>4. Escucha una tabla</span><span>java</span></div>
+              <pre><code>@UponUpdating(entity = Payment.class)
+public void onPaymentUpdated(Payment payment) {
+    sync(payment);
+}</code></pre>
+            </div>
+          </div>
+          <div class="doc-cta reveal">
+            <div>
+              <h3>Necesitas detalles de filtros, modos de schema, seguridad o pruebas manuales?</h3>
+              <p>La documentacion completa esta separada para que la landing se mantenga simple.</p>
+            </div>
+            <a class="button primary" href="documentation/">Abrir documentacion</a>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <a class="brand" href="index.html">
+          <img src="../assets/logoblanco.png" alt="">
+          <span>Tentacolous</span>
+        </a>
+        <span>Proyecto por Aimtone - <a href="https://github.com/aimtone/fusiondb">github.com/aimtone/fusiondb</a></span>
+      </div>
+    </footer>
+
+    <script src="../assets/script.js" defer></script>
+  </body>
+</html>
