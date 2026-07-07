@@ -14,6 +14,17 @@ Internally, Tentacolous uses database infrastructure:
 6. Tentacolous converts the event JSON payload into your Java entity.
 7. Tentacolous runs the annotated method.
 
+## Compatibility
+
+Latest stable version: 0.1.5
+
+Do not use:
+- 0.1.0
+- 0.1.1
+- 0.1.2
+- 0.1.3
+- 0.1.4
+
 ## Requirements
 
 - Java 17 or higher.
