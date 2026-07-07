@@ -16,7 +16,7 @@ Internally, Tentacolous uses database infrastructure:
 
 ## Compatibility
 
-Latest stable version: 0.1.5
+Latest stable version: 0.1.6
 
 Do not use:
 - 0.1.0
@@ -24,6 +24,7 @@ Do not use:
 - 0.1.2
 - 0.1.3
 - 0.1.4
+- 0.1.5
 
 ## Requirements
 
