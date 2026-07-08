@@ -1,3 +1,37 @@
+const themeStorageKey = "tentacolous-theme";
+const themeMeta = document.querySelector('meta[name="theme-color"]');
+const themeToggles = document.querySelectorAll("[data-theme-toggle]");
+
+const getCurrentTheme = () => document.documentElement.dataset.theme === "light" ? "light" : "dark";
+
+const applyTheme = (theme) => {
+  const isLight = theme === "light";
+
+  document.documentElement.dataset.theme = isLight ? "light" : "dark";
+  themeMeta?.setAttribute("content", isLight ? "#f4f8fb" : "#061016");
+
+  themeToggles.forEach((toggle) => {
+    const isSpanish = document.documentElement.lang === "es";
+    toggle.setAttribute("aria-pressed", String(isLight));
+    toggle.setAttribute(
+      "aria-label",
+      isSpanish
+        ? (isLight ? "Cambiar a tema oscuro" : "Cambiar a tema claro")
+        : (isLight ? "Switch to dark theme" : "Switch to light theme")
+    );
+  });
+};
+
+applyTheme(localStorage.getItem(themeStorageKey) === "light" ? "light" : "dark");
+
+themeToggles.forEach((toggle) => {
+  toggle.addEventListener("click", () => {
+    const nextTheme = getCurrentTheme() === "light" ? "dark" : "light";
+    localStorage.setItem(themeStorageKey, nextTheme);
+    applyTheme(nextTheme);
+  });
+});
+
 const observer = new IntersectionObserver((entries) => {
   entries.forEach((entry) => {
     if (entry.isIntersecting) {

@@ -24,6 +24,13 @@
     <link rel="alternate" hreflang="x-default" href="https://aimtone.github.io/tentacolous/">
     <link rel="icon" href="assets/favicon_32.png" type="image/png" sizes="32x32">
     <link rel="preload" href="assets/logoblanco.png" as="image">
+    <script>
+      (() => {
+        if (localStorage.getItem("tentacolous-theme") === "light") {
+          document.documentElement.dataset.theme = "light";
+        }
+      })();
+    </script>
     <link rel="stylesheet" href="assets/styles.css">
   </head>
   <body>
@@ -35,6 +42,14 @@
         </a>
         <div class="nav-links">
           <a class="nav-external" href="https://github.com/aimtone/tentacolous">GitHub</a>
+          <button class="theme-toggle" type="button" aria-label="Switch to light theme" aria-pressed="false" data-theme-toggle>
+            <span class="theme-icon theme-icon-sun" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2"></path><path d="M12 20v2"></path><path d="m4.93 4.93 1.41 1.41"></path><path d="m17.66 17.66 1.41 1.41"></path><path d="M2 12h2"></path><path d="M20 12h2"></path><path d="m6.34 17.66-1.41 1.41"></path><path d="m19.07 4.93-1.41 1.41"></path></svg>
+            </span>
+            <span class="theme-icon theme-icon-moon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20.4 14.5A8.4 8.4 0 0 1 9.5 3.6 8.4 8.4 0 1 0 20.4 14.5Z"></path></svg>
+            </span>
+          </button>
         </div>
       </nav>
     </header>
