@@ -16,15 +16,9 @@ Internally, Tentacolous uses database infrastructure:
 
 ## Compatibility
 
-Latest stable version: 0.1.6
+Latest stable version: `0.1.6`
 
-Do not use:
-- 0.1.0
-- 0.1.1
-- 0.1.2
-- 0.1.3
-- 0.1.4
-- 0.1.5
+Use `0.1.6` when you want the current stable Maven Central release.
 
 ## Requirements
 
@@ -32,44 +26,48 @@ Do not use:
 - Spring Boot.
 - A Spring Boot application with a configured `DataSource`.
 - PostgreSQL for automatic trigger creation.
-- Maven to build this library.
+- Maven or Gradle in the application that will consume Tentacolous.
 
 Automatic database infrastructure creation is currently implemented for PostgreSQL.
 
-## Local Installation
+## Installation From Maven Central
 
-Tentacolous is currently used as a local library. This means you must first install it into your local Maven repository, usually located at:
+Tentacolous is published to Maven Central. Add the stable release directly to your Maven or Gradle project.
 
-```text
-C:\Users\YOUR_USER\.m2\repository
-```
-
-From the Tentacolous project folder, run:
-
-```bash
-mvn clean install
-```
-
-That command does the following:
-
-1. Cleans previous build output.
-2. Compiles the library.
-3. Runs the tests.
-4. Installs the `.jar` into your local Maven repository.
-
-If everything works, you should see something like:
+Latest stable artifact:
 
 ```text
-BUILD SUCCESS
+io.github.aimtone:tentacolous:0.1.6
 ```
 
-The installed artifact is:
+### Gradle
 
-```text
-com.aimtone.tentacolous:tentacolous:0.0.1-SNAPSHOT
+For most Gradle projects, make sure `mavenCentral()` is enabled:
+
+```gradle
+repositories {
+    mavenCentral()
+}
 ```
 
-## Using Tentacolous In Another Project
+Then add Tentacolous:
+
+```gradle
+dependencies {
+    implementation 'io.github.aimtone:tentacolous:0.1.6'
+}
+```
+
+If your project uses `dependencyResolutionManagement` in `settings.gradle`, configure repositories there:
+
+```gradle
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        mavenCentral()
+    }
+}
+```
 
 ### Maven
 
@@ -77,41 +75,11 @@ Add this dependency to your project's `pom.xml`:
 
 ```xml
 <dependency>
-  <groupId>com.aimtone.tentacolous</groupId>
+  <groupId>io.github.aimtone</groupId>
   <artifactId>tentacolous</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>0.1.6</version>
 </dependency>
 ```
-
-### Gradle
-
-If your project uses Gradle, add `mavenLocal()` to `settings.gradle`:
-
-```gradle
-dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-    repositories {
-        mavenLocal()
-        mavenCentral()
-    }
-}
-```
-
-Then add the dependency to `build.gradle`:
-
-```gradle
-dependencies {
-    implementation('com.aimtone.tentacolous:tentacolous:0.0.1-SNAPSHOT') {
-        changing = true
-    }
-}
-
-configurations.configureEach {
-    resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
-}
-```
-
-`changing = true` is useful while you are repeatedly installing the same `0.0.1-SNAPSHOT` version during local development.
 
 ## Application Configuration
 
@@ -170,15 +138,9 @@ In production, `validate` or `none` is usually a better choice because creating 
 Tentacolous uses the entity to know which database table it should listen to.
 
 ```java
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-
 @Entity
-@Table(name = "persona")
-public class Persona {
+@Table(name = "person")
+public class Person {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -188,7 +150,7 @@ public class Persona {
     private String lastname;
     private String email;
 
-    public Persona() {
+    public Person() {
     }
 
     // getters and setters
@@ -198,16 +160,16 @@ public class Persona {
 If the entity has:
 
 ```java
-@Table(name = "persona")
+@Table(name = "person")
 ```
 
-Tentacolous listens to the `persona` table.
+Tentacolous listens to the `person` table.
 
 If the entity does not have `@Table`, Tentacolous infers the table name from the class name:
 
 | Entity | Inferred table |
 | --- | --- |
-| `Persona` | `persona` |
+| `Person` | `person` |
 | `UserAccount` | `user_account` |
 | `PaymentTransaction` | `payment_transaction` |
 
@@ -228,7 +190,7 @@ Parameters:
 | Parameter | Required | Description |
 | --- | --- | --- |
 | `entity` | Yes | Entity class that represents the table and receives the deserialized event payload. |
-| `entityName` | No | Logical event name. If omitted, Tentacolous uses the simple class name, for example `Persona`. |
+| `entityName` | No | Logical event name. If omitted, Tentacolous uses the simple class name, for example `Person`. |
 | `field` | Only with filters | Payload field that you want to compare. |
 | `valueType` | Only with filters | Type used to interpret `value`. |
 | `value` | Only with filters | Expected value, always written as text. |
@@ -241,13 +203,13 @@ Most of the time, you do not need `entityName`.
 By default, if you write:
 
 ```java
-@UponInserting(entity = Persona.class)
+@UponInserting(entity = Person.class)
 ```
 
 Tentacolous uses:
 
 ```text
-entityName = "Persona"
+entityName = "Person"
 ```
 
 That value is stored in `db_change_event.entity_name` and is used internally to match events with listeners.
@@ -308,9 +270,9 @@ If you use `valueType`, you must also define `field` and `value`.
 ### Basic Insert
 
 ```java
-@UponInserting(entity = Persona.class)
-public void onPersonaInserted(Persona persona) {
-    System.out.println("Inserted: " + persona.getEmail());
+@UponInserting(entity = Person.class)
+public void onPersonInserted(Person person) {
+    System.out.println("Inserted: " + person.getEmail());
 }
 ```
 
@@ -324,23 +286,23 @@ Use cases:
 ### Insert With Explicit Logical Name
 
 ```java
-@UponInserting(entity = Persona.class, entityName = "Persona")
-public void onPersonaInserted(Persona persona) {
+@UponInserting(entity = Person.class, entityName = "Person")
+public void onPersonInserted(Person person) {
 }
 ```
 
-This does the same as the basic example if your class is named `Persona`. It is useful only when you need to control the value stored in `db_change_event.entity_name`.
+This does the same as the basic example if your class is named `Person`. It is useful only when you need to control the value stored in `db_change_event.entity_name`.
 
 ### Insert With STRING Filter
 
 ```java
 @UponInserting(
-    entity = Persona.class,
+    entity = Person.class,
     field = "email",
     valueType = ValueType.STRING,
     value = "admin@example.com"
 )
-public void onAdminInserted(Persona persona) {
+public void onAdminInserted(Person person) {
 }
 ```
 
@@ -415,9 +377,9 @@ The listener still runs normally, but those columns are not stored in `db_change
 ### Basic Update
 
 ```java
-@UponUpdating(entity = Persona.class)
-public void onPersonaUpdated(Persona persona) {
-    System.out.println("Updated: " + persona.getEmail());
+@UponUpdating(entity = Person.class)
+public void onPersonUpdated(Person person) {
+    System.out.println("Updated: " + person.getEmail());
 }
 ```
 
@@ -491,9 +453,9 @@ For a `DELETE`, the payload contains the previous values of the record because t
 ### Basic Delete
 
 ```java
-@UponDeleting(entity = Persona.class)
-public void onPersonaDeleted(Persona persona) {
-    System.out.println("Deleted: " + persona.getEmail());
+@UponDeleting(entity = Person.class)
+public void onPersonDeleted(Person person) {
+    System.out.println("Deleted: " + person.getEmail());
 }
 ```
 
@@ -508,12 +470,12 @@ Use cases:
 
 ```java
 @UponDeleting(
-    entity = Persona.class,
+    entity = Person.class,
     field = "email",
     valueType = ValueType.STRING,
     value = "admin@example.com"
 )
-public void onAdminDeleted(Persona persona) {
+public void onAdminDeleted(Person person) {
 }
 ```
 
@@ -553,11 +515,11 @@ Missing `field`:
 
 ```java
 @UponInserting(
-    entity = Persona.class,
+    entity = Person.class,
     valueType = ValueType.BOOLEAN,
     value = "true"
 )
-public void invalid(Persona persona) {
+public void invalid(Person person) {
 }
 ```
 
@@ -565,27 +527,27 @@ Missing `value`:
 
 ```java
 @UponInserting(
-    entity = Persona.class,
+    entity = Person.class,
     field = "active",
     valueType = ValueType.BOOLEAN
 )
-public void invalid(Persona persona) {
+public void invalid(Person person) {
 }
 ```
 
 Method with more than one parameter:
 
 ```java
-@UponInserting(entity = Persona.class)
-public void invalid(Persona persona, String other) {
+@UponInserting(entity = Person.class)
+public void invalid(Person person, String other) {
 }
 ```
 
 Incompatible parameter:
 
 ```java
-@UponInserting(entity = Persona.class)
-public void invalid(String persona) {
+@UponInserting(entity = Person.class)
+public void invalid(String person) {
 }
 ```
 
@@ -595,8 +557,8 @@ Assume this entity:
 
 ```java
 @Entity
-@Table(name = "persona")
-public class Persona {
+@Table(name = "person")
+public class Person {
     // ...
 }
 ```
@@ -604,9 +566,9 @@ public class Persona {
 And this listener:
 
 ```java
-@UponInserting(entity = Persona.class)
-public void inserted(Persona persona) {
-    System.out.println("Persona inserted: " + persona.getEmail());
+@UponInserting(entity = Person.class)
+public void inserted(Person person) {
+    System.out.println("Person inserted: " + person.getEmail());
 }
 ```
 
@@ -615,21 +577,21 @@ Start your Spring Boot application. Tentacolous should print logs similar to:
 ```text
 Tentacolous registered 1 listener method(s)
 Initializing Tentacolous schema using event table 'db_change_event'
-Creating Tentacolous INSERT trigger for table 'persona' and entity 'Persona'
+Creating Tentacolous INSERT trigger for table 'person' and entity 'Person'
 Starting Tentacolous poller
 ```
 
 Then run this SQL in PostgreSQL:
 
 ```sql
-INSERT INTO public.persona (email, lastname, "name")
-VALUES ('test@example.com', 'Perez', 'Ana');
+INSERT INTO public.person ("email", "lastname", "name")
+VALUES ('johndoe@example.com', 'Doe', 'John');
 ```
 
 You should see this in your application console:
 
 ```text
-Persona inserted: test@example.com
+Person inserted: test@example.com
 ```
 
 You can inspect events:
@@ -645,7 +607,7 @@ And triggers:
 ```sql
 select trigger_name, event_object_schema, event_object_table
 from information_schema.triggers
-where event_object_table = 'persona';
+where event_object_table = 'person';
 ```
 
 ## How It Works Internally
@@ -701,20 +663,8 @@ From the library folder:
 mvn test
 ```
 
-To clean, compile, test, and install:
-
-```bash
-mvn clean install
-```
-
 Expected result:
 
 ```text
 BUILD SUCCESS
 ```
-
-## Current Limitations
-
-- Automatic infrastructure creation is currently implemented only for PostgreSQL.
-- Tentacolous does not use native CDC such as Debezium or logical replication.
-- Polling is simple. For very high-volume systems, native CDC or a specialized queue may be a better fit.

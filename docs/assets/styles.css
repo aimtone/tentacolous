@@ -539,26 +539,86 @@ p {
 
 .examples {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1rem;
+  align-items: stretch;
 }
 
 .code-block {
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
   border-radius: var(--radius);
   background: var(--panel);
   border: 1px solid var(--line);
+  min-height: 286px;
 }
 
 .code-title {
   display: flex;
+  align-items: center;
   justify-content: space-between;
   gap: .8rem;
-  padding: .75rem 1rem;
+  min-height: 58px;
+  padding: .8rem 1rem;
   border-bottom: 1px solid var(--line);
   color: #d8f7ff;
   font-size: .88rem;
   font-weight: 800;
+}
+
+.code-title span:last-child {
+  color: #d8f7ff;
+  white-space: nowrap;
+}
+
+.code-block > pre {
+  flex: 1;
+  margin: 1rem;
+  min-height: 202px;
+}
+
+.code-tabs {
+  display: flex;
+  gap: .45rem;
+  padding: .9rem 1rem .75rem;
+}
+
+.code-tab {
+  appearance: none;
+  border: 1px solid rgba(126, 247, 255, .24);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, .035);
+  color: var(--muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: .86rem;
+  font-weight: 800;
+  padding: .48rem .8rem;
+  transition: color .2s ease, border-color .2s ease, background .2s ease;
+}
+
+.code-tab:hover,
+.code-tab.active {
+  color: var(--text);
+  border-color: rgba(126, 247, 255, .55);
+  background: rgba(126, 247, 255, .11);
+}
+
+.tab-panel {
+  display: flex;
+  flex: 1;
+  padding: 0 1rem 1rem;
+}
+
+.tab-panel pre {
+  flex: 1;
+  width: 100%;
+  min-height: 202px;
+}
+
+.tab-panel[hidden] {
+  display: none;
 }
 
 .docs-layout {
@@ -581,6 +641,25 @@ p {
   border-radius: var(--radius);
   background: rgba(6, 16, 22, .7);
   padding: .75rem;
+}
+
+.docs-nav-group {
+  display: grid;
+  gap: .28rem;
+}
+
+.docs-nav-group + .docs-nav-group {
+  margin-top: .65rem;
+  padding-top: .65rem;
+  border-top: 1px solid rgba(126, 247, 255, .1);
+}
+
+.docs-nav-group span {
+  padding: .25rem .65rem;
+  color: var(--cyan);
+  font-size: .72rem;
+  font-weight: 900;
+  text-transform: uppercase;
 }
 
 .docs-nav a {
@@ -632,8 +711,9 @@ p {
   border-collapse: collapse;
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  display: block;
+  display: table;
   overflow-x: auto;
+  table-layout: fixed;
 }
 
 .doc-table th, .doc-table td {
@@ -673,6 +753,58 @@ p {
   padding-top: 2.6rem;
 }
 
+.docs-page-relaxed {
+  padding-top: 3rem;
+}
+
+.docs-page-relaxed .docs-layout {
+  grid-template-columns: 250px minmax(0, 900px);
+  gap: 2.8rem;
+  justify-content: center;
+}
+
+.docs-page-relaxed .doc-content {
+  gap: 1.45rem;
+}
+
+.docs-page-relaxed .doc-card {
+  padding: 2rem;
+  background: rgba(6, 16, 22, .58);
+}
+
+.docs-page-relaxed .doc-card h2 {
+  margin-bottom: 1rem;
+}
+
+.docs-page-relaxed .doc-card h3 {
+  margin-top: 1.45rem;
+  padding-top: 1.05rem;
+  border-top: 1px solid rgba(126, 247, 255, .1);
+}
+
+.docs-page-relaxed .doc-card h3:first-of-type {
+  margin-top: 1rem;
+}
+
+.docs-page-relaxed .doc-card p,
+.docs-page-relaxed .clean-list {
+  max-width: 76ch;
+}
+
+.docs-page-relaxed .doc-card pre {
+  margin: 1rem 0 1.35rem;
+  padding: 1.15rem;
+}
+
+.docs-page-relaxed .doc-table {
+  margin: 1rem 0 1.35rem;
+}
+
+.docs-page-relaxed .steps-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .75rem;
+}
+
 .doc-cta {
   margin-top: 1rem;
   display: flex;
@@ -691,6 +823,44 @@ p {
 
 .doc-cta p {
   margin: 0;
+}
+
+.ending {
+  padding-top: 2.4rem;
+  border-top: 1px solid rgba(126, 247, 255, .09);
+  background:
+    linear-gradient(180deg, rgba(126, 247, 255, .035), rgba(5, 11, 16, .72));
+}
+
+.ending-inner {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  max-width: 820px;
+}
+
+.ending-inner img {
+  width: 82px;
+  margin-bottom: 1rem;
+  filter: drop-shadow(0 18px 34px rgba(126, 247, 255, .2));
+}
+
+.ending-inner h2 {
+  max-width: 760px;
+  margin-bottom: .85rem;
+}
+
+.ending-inner p {
+  max-width: 680px;
+  margin: 0 auto 1.4rem;
+  line-height: 1.7;
+}
+
+.ending-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: .75rem;
 }
 
 .clean-list {
@@ -813,6 +983,19 @@ p {
 
   .docs-nav {
     position: static;
+  }
+
+  .docs-page-relaxed .docs-layout {
+    grid-template-columns: 1fr;
+    gap: 1.4rem;
+  }
+
+  .docs-page-relaxed .doc-card {
+    padding: 1.35rem;
+  }
+
+  .docs-page-relaxed .steps-list {
+    grid-template-columns: 1fr;
   }
 }
 

@@ -4,13 +4,25 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Tentacolous Documentation</title>
-    <meta name="description" content="Technical documentation for Tentacolous: installation, configuration, annotations, filters, testing, security, production and limitations.">
+    <meta name="description" content="Technical documentation for Tentacolous: installation, configuration, annotations, filters, testing, security and production.">
+    <meta name="keywords" content="Tentacolous documentation, Spring Boot PostgreSQL listener, database triggers, Java annotations, database events, Maven Central">
+    <meta name="author" content="Aimtone">
+    <meta name="robots" content="index, follow">
     <meta name="theme-color" content="#061016">
     <meta property="og:title" content="Tentacolous Documentation">
     <meta property="og:description" content="Complete guide for using Tentacolous in Spring Boot projects with PostgreSQL.">
     <meta property="og:type" content="website">
-    <meta property="og:image" content="../../assets/logoblanco.png">
-    <link rel="icon" href="../../assets/logoblanco.png" type="image/png">
+    <meta property="og:url" content="https://aimtone.github.io/tentacolous/en/documentation/">
+    <meta property="og:image" content="https://aimtone.github.io/tentacolous/assets/logoblanco.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Tentacolous Documentation">
+    <meta name="twitter:description" content="Complete guide for using Tentacolous in Spring Boot projects with PostgreSQL.">
+    <meta name="twitter:image" content="https://aimtone.github.io/tentacolous/assets/logoblanco.png">
+    <link rel="canonical" href="https://aimtone.github.io/tentacolous/en/documentation/">
+    <link rel="alternate" hreflang="en" href="https://aimtone.github.io/tentacolous/en/documentation/">
+    <link rel="alternate" hreflang="es" href="https://aimtone.github.io/tentacolous/es/documentation/">
+    <link rel="alternate" hreflang="x-default" href="https://aimtone.github.io/tentacolous/en/documentation/">
+    <link rel="icon" href="../../assets/favicon_32.png" type="image/png" sizes="32x32">
     <link rel="stylesheet" href="../../assets/styles.css">
   </head>
   <body>
@@ -22,9 +34,9 @@
         </a>
         <div class="nav-links">
           <a href="../index.html">Home</a>
-          <a class="nav-external" href="https://github.com/aimtone/fusiondb">GitHub</a>
+          <a class="nav-external" href="https://github.com/aimtone/tentacolous">GitHub</a>
           <span class="language-switch" aria-label="Language selector">
-            <a href="../../es/documentation/">ES</a>
+            <a href="../../es/documentation/index.html">ES</a>
             <a class="active" href="index.html">EN</a>
           </span>
         </div>
@@ -40,32 +52,42 @@
             <h1><span class="gradient-text">Technical guide</span></h1>
             <p class="slogan">Everything you need to install, configure and operate Tentacolous in a Spring Boot project.</p>
             <p class="hero-copy">
-              This page expands the README with a more navigable structure. It keeps the real repository scope:
-              Tentacolous uses PostgreSQL infrastructure, an event table and a Spring poller to execute annotated Java methods.
+              Learn how to add the dependency, configure event processing and create Java listeners that react to real PostgreSQL changes through triggers, an event table and a Spring poller.
             </p>
           </div>
         </div>
       </section>
 
-      <section class="section alt docs-page">
+      <section class="section alt docs-page docs-page-relaxed">
         <div class="wrap docs-layout">
           <aside class="docs-nav reveal" aria-label="Documentation index">
-            <a href="#overview">Overview</a>
-            <a href="#requirements">Requirements</a>
-            <a href="#install">Local installation</a>
-            <a href="#dependency">Using it</a>
-            <a href="#config">Configuration</a>
-            <a href="#entity">Entity mapping</a>
-            <a href="#annotations">Annotations</a>
-            <a href="#filters">Filter types</a>
-            <a href="#operations">Operations</a>
-            <a href="#invalid">Invalid combinations</a>
-            <a href="#manual-testing">Manual testing</a>
-            <a href="#internals">How it works</a>
-            <a href="#security">Security</a>
-            <a href="#production">Production</a>
-            <a href="#tests">Tests</a>
-            <a href="#limitations">Limitations</a>
+            <div class="docs-nav-group">
+              <span>Start</span>
+              <a href="#overview">Overview</a>
+              <a href="#requirements">Requirements</a>
+              <a href="#install">Maven Central</a>
+              <a href="#dependency">Dependency snippets</a>
+            </div>
+            <div class="docs-nav-group">
+              <span>Configure</span>
+              <a href="#config">Configuration</a>
+              <a href="#entity">Entity mapping</a>
+              <a href="#annotations">Annotations</a>
+              <a href="#filters">Filter types</a>
+            </div>
+            <div class="docs-nav-group">
+              <span>Use</span>
+              <a href="#operations">Operations</a>
+              <a href="#invalid">Invalid combinations</a>
+              <a href="#manual-testing">Manual testing</a>
+              <a href="#internals">How it works</a>
+            </div>
+            <div class="docs-nav-group">
+              <span>Operate</span>
+              <a href="#security">Security</a>
+              <a href="#production">Production</a>
+              <a href="#tests">Tests</a>
+            </div>
           </aside>
 
           <div class="doc-content">
@@ -91,47 +113,36 @@
                 <li>Spring Boot.</li>
                 <li>A Spring Boot application with a configured <code>DataSource</code>.</li>
                 <li>PostgreSQL for automatic trigger creation.</li>
-                <li>Maven to build this library.</li>
+                <li>Maven or Gradle in the application that will consume Tentacolous.</li>
               </ul>
               <p>Automatic database infrastructure creation is currently implemented for PostgreSQL.</p>
             </article>
 
             <article id="install" class="doc-card reveal">
-              <h2>Local installation</h2>
-              <p>Tentacolous is currently used as a local library. Install it into your local Maven repository, usually located at <code>C:\Users\YOUR_USER\.m2\repository</code>.</p>
-              <pre><code>mvn clean install</code></pre>
-              <p>That command cleans previous output, compiles the library, runs the tests and installs the <code>.jar</code> into your local Maven repository. The expected result is <code>BUILD SUCCESS</code>.</p>
-              <p>The installed artifact is <code>com.aimtone.tentacolous:tentacolous:0.0.1-SNAPSHOT</code>.</p>
+              <h2>Install from Maven Central</h2>
+              <p>Tentacolous is available from Maven Central. The latest stable version is <code>0.1.6</code>.</p>
+              <pre><code>io.github.aimtone:tentacolous:0.1.6</code></pre>
+              <p>You can consume the stable release directly from your application build file.</p>
             </article>
 
             <article id="dependency" class="doc-card reveal">
-              <h2>Using Tentacolous in another project</h2>
+              <h2>Dependency snippets</h2>
+              <h3>Gradle</h3>
+              <pre><code>implementation 'io.github.aimtone:tentacolous:0.1.6'</code></pre>
               <h3>Maven</h3>
               <pre><code>&lt;dependency&gt;
-  &lt;groupId&gt;com.aimtone.tentacolous&lt;/groupId&gt;
+  &lt;groupId&gt;io.github.aimtone&lt;/groupId&gt;
   &lt;artifactId&gt;tentacolous&lt;/artifactId&gt;
-  &lt;version&gt;0.0.1-SNAPSHOT&lt;/version&gt;
+  &lt;version&gt;0.1.6&lt;/version&gt;
 &lt;/dependency&gt;</code></pre>
-              <h3>Gradle</h3>
-              <p>Add <code>mavenLocal()</code> to <code>settings.gradle</code>:</p>
+              <h3>Gradle settings.gradle repositories</h3>
+              <p>If your Gradle project centralizes repositories in <code>settings.gradle</code>, use Maven Central there:</p>
               <pre><code>dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
-        mavenLocal()
         mavenCentral()
     }
 }</code></pre>
-              <p>Then add the dependency to <code>build.gradle</code>:</p>
-              <pre><code>dependencies {
-    implementation('com.aimtone.tentacolous:tentacolous:0.0.1-SNAPSHOT') {
-        changing = true
-    }
-}
-
-configurations.configureEach {
-    resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
-}</code></pre>
-              <p><code>changing = true</code> is useful while repeatedly installing the same <code>0.0.1-SNAPSHOT</code> during local development.</p>
             </article>
 
             <article id="config" class="doc-card reveal">
@@ -181,15 +192,9 @@ spring:
             <article id="entity" class="doc-card reveal">
               <h2>Example entity</h2>
               <p>Tentacolous uses the entity to know which database table it should listen to.</p>
-              <pre><code>import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-
-@Entity
-@Table(name = "persona")
-public class Persona {
+              <pre><code>@Entity
+@Table(name = "person")
+public class Person {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -199,16 +204,16 @@ public class Persona {
     private String lastname;
     private String email;
 
-    public Persona() {
+    public Person() {
     }
 
     // getters and setters
 }</code></pre>
-              <p>If the entity has <code>@Table(name = "persona")</code>, Tentacolous listens to the <code>persona</code> table. If it does not have <code>@Table</code>, Tentacolous infers the table name from the class name.</p>
+              <p>If the entity has <code>@Table(name = "person")</code>, Tentacolous listens to the <code>person</code> table. If it does not have <code>@Table</code>, Tentacolous infers the table name from the class name.</p>
               <table class="doc-table">
                 <thead><tr><th>Entity</th><th>Inferred table</th></tr></thead>
                 <tbody>
-                  <tr><td><code>Persona</code></td><td><code>persona</code></td></tr>
+                  <tr><td><code>Person</code></td><td><code>person</code></td></tr>
                   <tr><td><code>UserAccount</code></td><td><code>user_account</code></td></tr>
                   <tr><td><code>PaymentTransaction</code></td><td><code>payment_transaction</code></td></tr>
                 </tbody>
@@ -231,7 +236,7 @@ public class Persona {
                 </tbody>
               </table>
               <h3>About entityName</h3>
-              <p>Most of the time, you do not need <code>entityName</code>. By default, <code>@UponInserting(entity = Persona.class)</code> uses <code>Persona</code>. The value is stored in <code>db_change_event.entity_name</code> and is used internally to match events with listeners.</p>
+              <p>Most of the time, you do not need <code>entityName</code>. By default, <code>@UponInserting(entity = Person.class)</code> uses <code>Person</code>. The value is stored in <code>db_change_event.entity_name</code> and is used internally to match events with listeners.</p>
               <p>Use <code>entityName</code> only for advanced cases where you need a stable logical name, for example when external infrastructure already writes events with a specific name.</p>
               <h3>About exclude</h3>
               <p><code>exclude</code> does not filter listeners. It prevents specific columns from being stored in the event JSON payload.</p>
@@ -273,23 +278,23 @@ value = "expected value"</code></pre>
               <h2>Operations</h2>
               <h3>UponInserting</h3>
               <p><code>@UponInserting</code> runs a method when an <code>INSERT</code> occurs on the entity table.</p>
-              <pre><code>@UponInserting(entity = Persona.class)
-public void onPersonaInserted(Persona persona) {
-    System.out.println("Inserted: " + persona.getEmail());
+              <pre><code>@UponInserting(entity = Person.class)
+public void onPersonInserted(Person person) {
+    System.out.println("Inserted: " + person.getEmail());
 }</code></pre>
               <p>Use cases: run logic after a record is created, send a notification, publish a Kafka message or create an audit record.</p>
               <h4>Insert with explicit logical name</h4>
-              <pre><code>@UponInserting(entity = Persona.class, entityName = "Persona")
-public void onPersonaInserted(Persona persona) {
+              <pre><code>@UponInserting(entity = Person.class, entityName = "Person")
+public void onPersonInserted(Person person) {
 }</code></pre>
               <h4>Insert with STRING filter</h4>
               <pre><code>@UponInserting(
-    entity = Persona.class,
+    entity = Person.class,
     field = "email",
     valueType = ValueType.STRING,
     value = "admin@example.com"
 )
-public void onAdminInserted(Persona persona) {
+public void onAdminInserted(Person person) {
 }</code></pre>
               <h4>Insert with BOOLEAN filter</h4>
               <pre><code>@UponInserting(
@@ -328,9 +333,9 @@ public void onUserInserted(User user) {
 
               <h3>UponUpdating</h3>
               <p><code>@UponUpdating</code> runs a method when an <code>UPDATE</code> occurs on the entity table.</p>
-              <pre><code>@UponUpdating(entity = Persona.class)
-public void onPersonaUpdated(Persona persona) {
-    System.out.println("Updated: " + persona.getEmail());
+              <pre><code>@UponUpdating(entity = Person.class)
+public void onPersonUpdated(Person person) {
+    System.out.println("Updated: " + person.getEmail());
 }</code></pre>
               <p>Use cases: recalculate derived data, invalidate cache, notify other systems or synchronize with an external service.</p>
               <h4>Update with STRING filter</h4>
@@ -370,19 +375,19 @@ public void onUserUpdated(User user) {
 
               <h3>UponDeleting</h3>
               <p><code>@UponDeleting</code> runs a method when a <code>DELETE</code> occurs on the entity table. For a delete, the payload contains the previous values of the record because the row no longer exists after deletion.</p>
-              <pre><code>@UponDeleting(entity = Persona.class)
-public void onPersonaDeleted(Persona persona) {
-    System.out.println("Deleted: " + persona.getEmail());
+              <pre><code>@UponDeleting(entity = Person.class)
+public void onPersonDeleted(Person person) {
+    System.out.println("Deleted: " + person.getEmail());
 }</code></pre>
               <p>Use cases: clean up external resources, delete related data in another database, notify about deletions or register deletion audit data.</p>
               <h4>Delete with STRING filter</h4>
               <pre><code>@UponDeleting(
-    entity = Persona.class,
+    entity = Person.class,
     field = "email",
     valueType = ValueType.STRING,
     value = "admin@example.com"
 )
-public void onAdminDeleted(Persona persona) {
+public void onAdminDeleted(Person person) {
 }</code></pre>
               <h4>Delete with UUID filter</h4>
               <pre><code>@UponDeleting(
@@ -407,27 +412,27 @@ public void onUserDeleted(User user) {
               <p>These combinations should fail when the application starts.</p>
               <h3>Missing field</h3>
               <pre><code>@UponInserting(
-    entity = Persona.class,
+    entity = Person.class,
     valueType = ValueType.BOOLEAN,
     value = "true"
 )
-public void invalid(Persona persona) {
+public void invalid(Person person) {
 }</code></pre>
               <h3>Missing value</h3>
               <pre><code>@UponInserting(
-    entity = Persona.class,
+    entity = Person.class,
     field = "active",
     valueType = ValueType.BOOLEAN
 )
-public void invalid(Persona persona) {
+public void invalid(Person person) {
 }</code></pre>
               <h3>Method with more than one parameter</h3>
-              <pre><code>@UponInserting(entity = Persona.class)
-public void invalid(Persona persona, String other) {
+              <pre><code>@UponInserting(entity = Person.class)
+public void invalid(Person person, String other) {
 }</code></pre>
               <h3>Incompatible parameter</h3>
-              <pre><code>@UponInserting(entity = Persona.class)
-public void invalid(String persona) {
+              <pre><code>@UponInserting(entity = Person.class)
+public void invalid(String person) {
 }</code></pre>
             </article>
 
@@ -435,25 +440,25 @@ public void invalid(String persona) {
               <h2>Manual testing</h2>
               <p>Assume this entity and listener:</p>
               <pre><code>@Entity
-@Table(name = "persona")
-public class Persona {
+@Table(name = "person")
+public class Person {
     // ...
 }
 
-@UponInserting(entity = Persona.class)
-public void inserted(Persona persona) {
-    System.out.println("Persona inserted: " + persona.getEmail());
+@UponInserting(entity = Person.class)
+public void inserted(Person person) {
+    System.out.println("Person inserted: " + person.getEmail());
 }</code></pre>
               <p>Start your Spring Boot application. Tentacolous should print logs similar to:</p>
               <pre><code>Tentacolous registered 1 listener method(s)
 Initializing Tentacolous schema using event table 'db_change_event'
-Creating Tentacolous INSERT trigger for table 'persona' and entity 'Persona'
+Creating Tentacolous INSERT trigger for table 'person' and entity 'Person'
 Starting Tentacolous poller</code></pre>
               <p>Then run this SQL in PostgreSQL:</p>
-              <pre><code>INSERT INTO public.persona (email, lastname, "name")
+              <pre><code>INSERT INTO public.person (email, lastname, "name")
 VALUES ('test@example.com', 'Perez', 'Ana');</code></pre>
               <p>You should see this in your application console:</p>
-              <pre><code>Persona inserted: test@example.com</code></pre>
+              <pre><code>Person inserted: test@example.com</code></pre>
               <p>Inspect events and triggers with:</p>
               <pre><code>select *
 from db_change_event
@@ -461,7 +466,7 @@ order by id desc;
 
 select trigger_name, event_object_schema, event_object_table
 from information_schema.triggers
-where event_object_table = 'persona';</code></pre>
+where event_object_table = 'person';</code></pre>
             </article>
 
             <article id="internals" class="doc-card reveal">
@@ -504,20 +509,10 @@ where event_object_table = 'persona';</code></pre>
               <h2>Running Tentacolous tests</h2>
               <p>From the library folder:</p>
               <pre><code>mvn test</code></pre>
-              <p>To clean, compile, test and install:</p>
-              <pre><code>mvn clean install</code></pre>
               <p>Expected result:</p>
               <pre><code>BUILD SUCCESS</code></pre>
             </article>
 
-            <article id="limitations" class="doc-card reveal">
-              <h2>Current limitations</h2>
-              <ul class="clean-list">
-                <li>Automatic infrastructure creation is currently implemented only for PostgreSQL.</li>
-                <li>Tentacolous does not use native CDC such as Debezium or logical replication.</li>
-                <li>Polling is simple. For very high-volume systems, native CDC or a specialized queue may be a better fit.</li>
-              </ul>
-            </article>
           </div>
         </div>
       </section>
@@ -529,7 +524,7 @@ where event_object_table = 'persona';</code></pre>
           <img src="../../assets/logoblanco.png" alt="">
           <span>Tentacolous</span>
         </a>
-        <span><a href="../index.html">Home</a> - <a href="https://github.com/aimtone/fusiondb">GitHub repository</a></span>
+        <span><a href="../index.html">Home</a> - <a href="https://github.com/aimtone/tentacolous">GitHub repository</a></span>
       </div>
     </footer>
 

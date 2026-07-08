@@ -20,3 +20,30 @@ document.querySelectorAll('a[href^="#"]').forEach((link) => {
     target.scrollIntoView({ behavior: "smooth", block: "start" });
   });
 });
+
+document.querySelectorAll(".code-tabs").forEach((tabs) => {
+  const buttons = tabs.querySelectorAll(".code-tab");
+
+  buttons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const targetId = button.dataset.tabTarget;
+      const block = button.closest(".code-block");
+      const target = block?.querySelector(`#${targetId}`);
+
+      if (!target) {
+        return;
+      }
+
+      buttons.forEach((item) => {
+        item.classList.toggle("active", item === button);
+        item.setAttribute("aria-selected", String(item === button));
+      });
+
+      block.querySelectorAll(".tab-panel").forEach((panel) => {
+        const isActive = panel === target;
+        panel.classList.toggle("active", isActive);
+        panel.hidden = !isActive;
+      });
+    });
+  });
+});
