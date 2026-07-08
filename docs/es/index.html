@@ -128,8 +128,13 @@ public void onPersonInserted(Person person) {
               </div>
             </div>
             <div class="code-block reveal">
-              <div class="code-title"><span>2. Agrega properties</span><span>application.yml</span></div>
-              <pre><code>tentacolous:
+              <div class="code-title"><span>2. Agrega properties</span><span>Config Spring</span></div>
+              <div class="code-tabs" role="tablist" aria-label="Formato de configuracion Spring">
+                <button class="code-tab active" type="button" role="tab" aria-selected="true" aria-controls="es-yml-properties" data-tab-target="es-yml-properties">application.yml</button>
+                <button class="code-tab" type="button" role="tab" aria-selected="false" aria-controls="es-properties-config" data-tab-target="es-properties-config">application.properties</button>
+              </div>
+              <div class="tab-panel active" id="es-yml-properties" role="tabpanel">
+                <pre><code>tentacolous:
   enabled: true
   schema-management: auto
   event-table: db_change_event
@@ -137,13 +142,42 @@ public void onPersonInserted(Person person) {
   initial-delay: 0s
   batch-size: 100
   max-attempts: 3</code></pre>
+              </div>
+              <div class="tab-panel" id="es-properties-config" role="tabpanel" hidden>
+                <pre><code>tentacolous.enabled=true
+tentacolous.schema-management=auto
+tentacolous.event-table=db_change_event
+tentacolous.poll-interval=1s
+tentacolous.initial-delay=0s
+tentacolous.batch-size=100
+tentacolous.max-attempts=3</code></pre>
+              </div>
             </div>
             <div class="code-block reveal">
               <div class="code-title"><span>3. Usa las anotaciones</span><span>Java</span></div>
-              <pre><code>@UponInserting(entity = Person.class)
+              <div class="code-tabs" role="tablist" aria-label="Anotaciones por operacion">
+                <button class="code-tab active" type="button" role="tab" aria-selected="true" aria-controls="es-insert-annotation" data-tab-target="es-insert-annotation">Insertar</button>
+                <button class="code-tab" type="button" role="tab" aria-selected="false" aria-controls="es-update-annotation" data-tab-target="es-update-annotation">Actualizar</button>
+                <button class="code-tab" type="button" role="tab" aria-selected="false" aria-controls="es-delete-annotation" data-tab-target="es-delete-annotation">Eliminar</button>
+              </div>
+              <div class="tab-panel active" id="es-insert-annotation" role="tabpanel">
+                <pre><code>@UponInserting(entity = Person.class)
 public void onPersonInserted(Person person) {
     notify(person.getEmail());
 }</code></pre>
+              </div>
+              <div class="tab-panel" id="es-update-annotation" role="tabpanel" hidden>
+                <pre><code>@UponUpdating(entity = Person.class)
+public void onPersonUpdated(Person person) {
+    syncProfile(person);
+}</code></pre>
+              </div>
+              <div class="tab-panel" id="es-delete-annotation" role="tabpanel" hidden>
+                <pre><code>@UponDeleting(entity = Person.class)
+public void onPersonDeleted(Person person) {
+    removeFromIndex(person.getId());
+}</code></pre>
+              </div>
             </div>
           </div>
           <div class="doc-cta reveal">
