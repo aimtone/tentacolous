@@ -3,10 +3,12 @@
 
 ![Java](https://img.shields.io/badge/Java-17+-orange?logo=openjdk)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.x-6DB33F?logo=springboot)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16+-4169E1?logo=postgresql&logoColor=white)
 ![Maven Central](https://img.shields.io/maven-central/v/io.github.aimtone/tentacolous)
 ![License](https://img.shields.io/github/license/aimtone/tentacolous)
 ![GitHub stars](https://img.shields.io/github/stars/aimtone/tentacolous?style=social)
 ![GitHub forks](https://img.shields.io/github/forks/aimtone/tentacolous?style=social)
+
 ## Introduction
 
 In modern development, many applications need to react in real time to changes in the database. However, most solutions depend on those changes happening inside the application itself.
