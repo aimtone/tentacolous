@@ -1,5 +1,4 @@
 # Tentacolous
-# Tentacolous
 
 ![Java](https://img.shields.io/badge/Java-17+-orange?logo=openjdk)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.x-6DB33F?logo=springboot)
