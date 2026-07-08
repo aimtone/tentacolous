@@ -163,7 +163,9 @@ pre {
   background: rgba(255, 255, 255, .04);
   color: var(--cyan);
   cursor: pointer;
-  place-items: center;
+  align-content: center;
+  justify-items: center;
+  gap: 4px;
   padding: .6rem;
   transition: transform .2s ease, border-color .2s ease, background .2s ease;
 }
@@ -1275,18 +1277,18 @@ p {
     display: grid;
     grid-template-columns: 1fr;
     align-items: stretch;
-    gap: .35rem;
+    gap: .42rem;
     margin-top: .85rem;
-    padding: .75rem;
+    padding: .7rem;
     border: 1px solid rgba(126, 247, 255, .16);
     border-radius: var(--radius);
-    background: rgba(5, 11, 16, .88);
+    background: rgba(5, 11, 16, .94);
     box-shadow: var(--shadow);
   }
 
   .nav-links.open a {
     width: 100%;
-    padding: .8rem .85rem;
+    padding: .76rem .82rem;
   }
 
   .nav-links.open .language-switch {
@@ -1306,8 +1308,20 @@ p {
   }
 
   :root[data-theme="light"] .nav-links.open {
-    border-color: rgba(17, 56, 70, .14);
-    background: rgba(255, 255, 255, .92);
+    border-color: rgba(0, 127, 140, .18);
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, .86), rgba(235, 247, 249, .9)),
+      var(--bg);
+    box-shadow: 0 18px 42px rgba(17, 56, 70, .14);
+  }
+
+  :root[data-theme="light"] .nav-links.open a:hover {
+    background: rgba(0, 127, 140, .08);
+  }
+
+  :root[data-theme="light"] .nav-links.open .language-switch,
+  :root[data-theme="light"] .nav-links.open .theme-toggle {
+    background: rgba(255, 255, 255, .62);
   }
 
   .hero,
