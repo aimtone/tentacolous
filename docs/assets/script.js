@@ -1,6 +1,7 @@
 const themeStorageKey = "tentacolous-theme";
 const themeMeta = document.querySelector('meta[name="theme-color"]');
 const themeToggles = document.querySelectorAll("[data-theme-toggle]");
+const menuToggles = document.querySelectorAll("[data-menu-toggle]");
 
 const getCurrentTheme = () => document.documentElement.dataset.theme === "light" ? "light" : "dark";
 
@@ -29,6 +30,36 @@ themeToggles.forEach((toggle) => {
     const nextTheme = getCurrentTheme() === "light" ? "dark" : "light";
     localStorage.setItem(themeStorageKey, nextTheme);
     applyTheme(nextTheme);
+  });
+});
+
+menuToggles.forEach((toggle) => {
+  const menu = document.getElementById(toggle.getAttribute("aria-controls"));
+
+  if (!menu) {
+    return;
+  }
+
+  const closeMenu = () => {
+    toggle.setAttribute("aria-expanded", "false");
+    toggle.setAttribute("aria-label", document.documentElement.lang === "es" ? "Abrir menu" : "Open menu");
+    menu.classList.remove("open");
+  };
+
+  toggle.addEventListener("click", () => {
+    const isOpen = toggle.getAttribute("aria-expanded") === "true";
+    toggle.setAttribute("aria-expanded", String(!isOpen));
+    toggle.setAttribute(
+      "aria-label",
+      document.documentElement.lang === "es"
+        ? (!isOpen ? "Cerrar menu" : "Abrir menu")
+        : (!isOpen ? "Close menu" : "Open menu")
+    );
+    menu.classList.toggle("open", !isOpen);
+  });
+
+  menu.querySelectorAll("a").forEach((link) => {
+    link.addEventListener("click", closeMenu);
   });
 });
 
