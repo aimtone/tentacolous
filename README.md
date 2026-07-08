@@ -8,6 +8,19 @@
 ![GitHub stars](https://img.shields.io/github/stars/aimtone/tentacolous?style=social)
 ![GitHub forks](https://img.shields.io/github/forks/aimtone/tentacolous?style=social)
 
+## Table of Contents
+
+- [Introduction](#introduction)
+- [Features](#-what-makes-tentacolous-different)
+- [Requirements](#-requirements)
+- [Quick Example](#quick-example)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Use Cases](#use-cases)
+- [Why Tentacolous?](#why-tentacolous)
+- [Conclusion](#conclusion)
+- [Resources](#resources)
+
 ## Introduction
 
 In modern development, many applications need to react in real time to changes in the database. However, most solutions depend on those changes happening inside the application itself.
