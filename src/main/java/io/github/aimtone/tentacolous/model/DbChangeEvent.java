@@ -6,6 +6,8 @@ public class DbChangeEvent {
     private String entityName;
     private String operation;
     private String payload;
+    private String oldPayload;
+    private String recordKey;
 
     public Long getId() {
         return id;
@@ -37,5 +39,21 @@ public class DbChangeEvent {
 
     public void setPayload(String payload) {
         this.payload = payload;
+    }
+
+    public String getOldPayload() {
+        return oldPayload;
+    }
+
+    public void setOldPayload(String oldPayload) {
+        this.oldPayload = oldPayload;
+    }
+
+    public String getRecordKey() {
+        return recordKey;
+    }
+
+    public void setRecordKey(String recordKey) {
+        this.recordKey = recordKey;
     }
 }

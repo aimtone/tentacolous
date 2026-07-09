@@ -15,6 +15,7 @@ public class ListenerDefinition {
     private final Class<?> entityClass;
     private final String entityName;
     private final String tableName;
+    private final String recordKeyField;
     private final ListenerFilter filter;
     private final List<String> excludedColumns;
 
@@ -25,6 +26,7 @@ public class ListenerDefinition {
             Class<?> entityClass,
             String entityName,
             String tableName,
+            String recordKeyField,
             ListenerFilter filter,
             String[] excludedColumns
     ) {
@@ -34,6 +36,7 @@ public class ListenerDefinition {
         this.entityClass = entityClass;
         this.entityName = entityName;
         this.tableName = tableName;
+        this.recordKeyField = recordKeyField;
         this.filter = filter;
         this.excludedColumns = excludedColumns == null
                 ? Collections.emptyList()
@@ -62,6 +65,10 @@ public class ListenerDefinition {
 
     public String getTableName() {
         return tableName;
+    }
+
+    public String getRecordKeyField() {
+        return recordKeyField;
     }
 
     public ListenerFilter getFilter() {

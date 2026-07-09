@@ -22,6 +22,8 @@ public class PostgreSqlDialect implements DatabaseDialect {
                 + "entity_name VARCHAR(255) NOT NULL, "
                 + "operation VARCHAR(20) NOT NULL, "
                 + "payload TEXT NOT NULL, "
+                + "old_payload TEXT NULL, "
+                + "record_key TEXT NULL, "
                 + "status VARCHAR(20) NOT NULL DEFAULT 'PENDING', "
                 + "processed BOOLEAN NOT NULL DEFAULT false, "
                 + "attempts INTEGER NOT NULL DEFAULT 0, "
@@ -31,18 +33,29 @@ public class PostgreSqlDialect implements DatabaseDialect {
                 + "processed_at TIMESTAMP NULL"
                 + ")");
 
+        jdbcTemplate.execute("ALTER TABLE " + eventTable + " ADD COLUMN IF NOT EXISTS old_payload TEXT NULL");
+        jdbcTemplate.execute("ALTER TABLE " + eventTable + " ADD COLUMN IF NOT EXISTS record_key TEXT NULL");
+
         jdbcTemplate.execute("CREATE OR REPLACE FUNCTION " + functionName + "() "
                 + "RETURNS trigger AS $$ "
                 + "DECLARE "
                 + "payload_json jsonb; "
+                + "old_payload_json jsonb; "
                 + "excluded_columns text[] := TG_ARGV[1]::text[]; "
+                + "record_key_field text := COALESCE(NULLIF(TG_ARGV[2], ''), 'id'); "
+                + "record_key_value text; "
                 + "BEGIN "
                 + "payload_json := CASE WHEN TG_OP = 'DELETE' THEN to_jsonb(OLD) ELSE to_jsonb(NEW) END; "
+                + "old_payload_json := CASE WHEN TG_OP = 'UPDATE' THEN to_jsonb(OLD) ELSE NULL END; "
+                + "record_key_value := payload_json ->> record_key_field; "
                 + "IF excluded_columns IS NOT NULL THEN "
                 + "payload_json := payload_json - excluded_columns; "
+                + "IF old_payload_json IS NOT NULL THEN "
+                + "old_payload_json := old_payload_json - excluded_columns; "
                 + "END IF; "
-                + "INSERT INTO " + eventTable + "(entity_name, operation, payload) "
-                + "VALUES (TG_ARGV[0], TG_OP, payload_json::text); "
+                + "END IF; "
+                + "INSERT INTO " + eventTable + "(entity_name, operation, payload, old_payload, record_key) "
+                + "VALUES (TG_ARGV[0], TG_OP, payload_json::text, old_payload_json::text, record_key_value); "
                 + "IF TG_OP = 'DELETE' THEN "
                 + "RETURN OLD; "
                 + "END IF; "
@@ -75,7 +88,8 @@ public class PostgreSqlDialect implements DatabaseDialect {
                 + "FOR EACH ROW "
                 + "EXECUTE FUNCTION " + functionName + "('"
                 + escapeLiteral(listener.getEntityName()) + "', '"
-                + excludedColumnsLiteral(listener.getExcludedColumns()) + "')");
+                + excludedColumnsLiteral(listener.getExcludedColumns()) + "', '"
+                + escapeLiteral(listener.getRecordKeyField()) + "')");
     }
 
     private static String functionName(String eventTable) {

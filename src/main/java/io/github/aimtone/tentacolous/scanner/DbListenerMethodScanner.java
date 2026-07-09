@@ -18,12 +18,22 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.List;
 import java.util.Map;
 
 public class DbListenerMethodScanner implements SmartInitializingSingleton, ApplicationContextAware {
 
     private static final Logger log = LoggerFactory.getLogger(DbListenerMethodScanner.class);
+
+    private enum ParameterMode {
+        SINGLE,
+        UPDATE,
+        DELETE
+    }
 
     private final ListenerRegistry listenerRegistry;
     private ApplicationContext applicationContext;
@@ -75,7 +85,7 @@ public class DbListenerMethodScanner implements SmartInitializingSingleton, Appl
             return;
         }
 
-        validateMethod(annotatedMethod, annotation.entity(), annotation.valueType(), annotation.field(), annotation.value(), "@UponInserting");
+        validateMethod(annotatedMethod, annotation.entity(), annotation.valueType(), annotation.field(), annotation.value(), "@UponInserting", ParameterMode.SINGLE);
         Method invocableMethod = AopUtils.selectInvocableMethod(annotatedMethod, bean.getClass());
 
         listenerRegistry.registerListener(new ListenerDefinition(
@@ -85,6 +95,7 @@ public class DbListenerMethodScanner implements SmartInitializingSingleton, Appl
                 annotation.entity(),
                 resolveEntityName(annotation.entity(), annotation.entityName()),
                 resolveTableName(annotation.entity()),
+                resolveRecordKeyField(annotation.entity()),
                 filter(annotation.valueType(), annotation.field(), annotation.value()),
                 annotation.exclude()
         ));
@@ -98,7 +109,7 @@ public class DbListenerMethodScanner implements SmartInitializingSingleton, Appl
             return;
         }
 
-        validateMethod(annotatedMethod, annotation.entity(), annotation.valueType(), annotation.field(), annotation.value(), "@UponUpdating");
+        validateMethod(annotatedMethod, annotation.entity(), annotation.valueType(), annotation.field(), annotation.value(), "@UponUpdating", ParameterMode.UPDATE);
         Method invocableMethod = AopUtils.selectInvocableMethod(annotatedMethod, bean.getClass());
 
         listenerRegistry.registerListener(new ListenerDefinition(
@@ -108,6 +119,7 @@ public class DbListenerMethodScanner implements SmartInitializingSingleton, Appl
                 annotation.entity(),
                 resolveEntityName(annotation.entity(), annotation.entityName()),
                 resolveTableName(annotation.entity()),
+                resolveRecordKeyField(annotation.entity()),
                 filter(annotation.valueType(), annotation.field(), annotation.value()),
                 annotation.exclude()
         ));
@@ -121,7 +133,7 @@ public class DbListenerMethodScanner implements SmartInitializingSingleton, Appl
             return;
         }
 
-        validateMethod(annotatedMethod, annotation.entity(), annotation.valueType(), annotation.field(), annotation.value(), "@UponDeleting");
+        validateMethod(annotatedMethod, annotation.entity(), annotation.valueType(), annotation.field(), annotation.value(), "@UponDeleting", ParameterMode.DELETE);
         Method invocableMethod = AopUtils.selectInvocableMethod(annotatedMethod, bean.getClass());
 
         listenerRegistry.registerListener(new ListenerDefinition(
@@ -131,6 +143,7 @@ public class DbListenerMethodScanner implements SmartInitializingSingleton, Appl
                 annotation.entity(),
                 resolveEntityName(annotation.entity(), annotation.entityName()),
                 resolveTableName(annotation.entity()),
+                resolveRecordKeyField(annotation.entity()),
                 filter(annotation.valueType(), annotation.field(), annotation.value()),
                 annotation.exclude()
         ));
@@ -172,8 +185,48 @@ public class DbListenerMethodScanner implements SmartInitializingSingleton, Appl
         return toSnakeCase(entityClass.getSimpleName());
     }
 
+    private String resolveRecordKeyField(Class<?> entityClass) {
+        for (Field field : entityClass.getDeclaredFields()) {
+            if (findAnnotation(field, "jakarta.persistence.Id", "javax.persistence.Id") != null) {
+                String columnName = resolveColumnName(field);
+
+                if (columnName != null && !columnName.isBlank()) {
+                    return columnName;
+                }
+
+                return field.getName();
+            }
+        }
+
+        return "id";
+    }
+
+    private String resolveColumnName(Field field) {
+        Annotation columnAnnotation = findAnnotation(field, "jakarta.persistence.Column", "javax.persistence.Column");
+
+        if (columnAnnotation == null) {
+            return "";
+        }
+
+        return annotationStringValue(columnAnnotation, "name");
+    }
+
     private Annotation findAnnotation(Class<?> type, String... annotationTypeNames) {
         for (Annotation annotation : type.getAnnotations()) {
+            String annotationTypeName = annotation.annotationType().getName();
+
+            for (String expectedTypeName : annotationTypeNames) {
+                if (expectedTypeName.equals(annotationTypeName)) {
+                    return annotation;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private Annotation findAnnotation(Field field, String... annotationTypeNames) {
+        for (Annotation annotation : field.getAnnotations()) {
             String annotationTypeName = annotation.annotationType().getName();
 
             for (String expectedTypeName : annotationTypeNames) {
@@ -208,21 +261,52 @@ public class DbListenerMethodScanner implements SmartInitializingSingleton, Appl
             ValueType valueType,
             String field,
             String value,
-            String annotationName
+            String annotationName,
+            ParameterMode parameterMode
     ) {
-        if (method.getParameterCount() != 1) {
+        int parameterCount = method.getParameterCount();
+        int maxParameterCount = switch (parameterMode) {
+            case SINGLE -> 1;
+            case UPDATE -> 3;
+            case DELETE -> 2;
+        };
+
+        if (parameterCount < 1 || parameterCount > maxParameterCount) {
             throw new IllegalArgumentException(
-                    annotationName + " method must have exactly one parameter: " + method.getName()
+                    annotationName + " method must have " + parameterDescription(parameterMode)
+                            + ": " + method.getName()
             );
         }
 
-        Class<?> parameterType = method.getParameterTypes()[0];
+        Class<?>[] parameterTypes = method.getParameterTypes();
 
-        if (!parameterType.isAssignableFrom(entityClass)) {
+        if (!parameterTypes[0].isAssignableFrom(entityClass)) {
             throw new IllegalArgumentException(
                     annotationName + " method parameter must be compatible with entity "
                             + entityClass.getName() + ": " + method.getName()
             );
+        }
+
+        if (parameterMode == ParameterMode.UPDATE && parameterCount == 2 && !parameterTypes[1].isAssignableFrom(entityClass)) {
+            throw new IllegalArgumentException(
+                    annotationName + " method old entity parameter must be compatible with entity "
+                            + entityClass.getName() + ": " + method.getName()
+            );
+        }
+
+        if (parameterMode == ParameterMode.UPDATE && parameterCount == 3) {
+            if (!parameterTypes[1].isAssignableFrom(entityClass)) {
+                throw new IllegalArgumentException(
+                        annotationName + " method old entity parameter must be compatible with entity "
+                                + entityClass.getName() + ": " + method.getName()
+                );
+            }
+
+            validateHistoryParameter(method, parameterTypes[2], 2, entityClass, annotationName);
+        }
+
+        if (parameterMode == ParameterMode.DELETE && parameterCount == 2) {
+            validateHistoryParameter(method, parameterTypes[1], 1, entityClass, annotationName);
         }
 
         if (valueType != ValueType.NONE && (field == null || field.isBlank())) {
@@ -235,6 +319,54 @@ public class DbListenerMethodScanner implements SmartInitializingSingleton, Appl
             throw new IllegalArgumentException(
                     annotationName + " method with value filter must define value: " + method.getName()
             );
+        }
+    }
+
+    private String parameterDescription(ParameterMode parameterMode) {
+        return switch (parameterMode) {
+            case SINGLE -> "exactly one parameter";
+            case UPDATE -> "one, two or three parameters";
+            case DELETE -> "one or two parameters";
+        };
+    }
+
+    private void validateHistoryParameter(
+            Method method,
+            Class<?> historyParameterType,
+            int parameterIndex,
+            Class<?> entityClass,
+            String annotationName
+    ) {
+        if (historyParameterType.isArray()) {
+            Class<?> componentType = historyParameterType.getComponentType();
+
+            if (!componentType.isAssignableFrom(entityClass)) {
+                throw new IllegalArgumentException(
+                        annotationName + " method history array component must be compatible with entity "
+                                + entityClass.getName() + ": " + method.getName()
+                );
+            }
+
+            return;
+        }
+
+        if (!List.class.isAssignableFrom(historyParameterType)) {
+            throw new IllegalArgumentException(
+                    annotationName + " method history parameter must be a List or array: " + method.getName()
+            );
+        }
+
+        Type genericParameterType = method.getGenericParameterTypes()[parameterIndex];
+
+        if (genericParameterType instanceof ParameterizedType parameterizedType) {
+            Type typeArgument = parameterizedType.getActualTypeArguments()[0];
+
+            if (typeArgument instanceof Class<?> historyType && !historyType.isAssignableFrom(entityClass)) {
+                throw new IllegalArgumentException(
+                        annotationName + " method history List type must be compatible with entity "
+                                + entityClass.getName() + ": " + method.getName()
+                );
+            }
         }
     }
 }

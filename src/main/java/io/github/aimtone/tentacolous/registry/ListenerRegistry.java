@@ -148,6 +148,7 @@ public class ListenerRegistry {
                 listenerMethod.getEntityClass(),
                 listenerMethod.getEntityName(),
                 listenerMethod.getTableName(),
+                "id",
                 new ListenerFilter(
                         listenerMethod.getFieldName(),
                         listenerMethod.getValueType(),

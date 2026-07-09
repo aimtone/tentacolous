@@ -2,21 +2,43 @@ package io.github.aimtone.tentacolous.dispatcher;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.aimtone.tentacolous.config.DbListenerProperties;
 import io.github.aimtone.tentacolous.model.DbChangeEvent;
 import io.github.aimtone.tentacolous.model.DbOperation;
 import io.github.aimtone.tentacolous.registry.ListenerDefinition;
 import io.github.aimtone.tentacolous.registry.ListenerRegistry;
+import org.springframework.jdbc.core.JdbcTemplate;
 
+import java.lang.reflect.Array;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.regex.Pattern;
 
 public class EventDispatcher {
 
+    private static final Pattern SAFE_TABLE_NAME = Pattern.compile("[a-zA-Z_][a-zA-Z0-9_\\.]*");
+
     private final ListenerRegistry listenerRegistry;
     private final ObjectMapper objectMapper;
+    private final JdbcTemplate jdbcTemplate;
+    private final DbListenerProperties properties;
 
     public EventDispatcher(ListenerRegistry listenerRegistry, ObjectMapper objectMapper) {
+        this(listenerRegistry, objectMapper, null, null);
+    }
+
+    public EventDispatcher(
+            ListenerRegistry listenerRegistry,
+            ObjectMapper objectMapper,
+            JdbcTemplate jdbcTemplate,
+            DbListenerProperties properties
+    ) {
         this.listenerRegistry = listenerRegistry;
         this.objectMapper = objectMapper;
+        this.jdbcTemplate = jdbcTemplate;
+        this.properties = properties;
     }
 
     public void dispatchInsert(DbChangeEvent event, Class<?> entityClass) {
@@ -65,11 +87,115 @@ public class EventDispatcher {
                     event.getPayload(),
                     listener.getEntityClass()
             );
+            Object oldEntity = null;
+            Method method = listener.getMethod();
+            int parameterCount = method.getParameterCount();
 
-            listener.getMethod().invoke(listener.getBean(), entity);
+            if (listener.getOperation() == DbOperation.UPDATE && parameterCount >= 2 && event.getOldPayload() != null) {
+                oldEntity = objectMapper.readValue(
+                        event.getOldPayload(),
+                        listener.getEntityClass()
+                );
+            }
+
+            if (listener.getOperation() == DbOperation.UPDATE && parameterCount == 3) {
+                Object history = readHistory(event, listener, method.getParameterTypes()[2]);
+                method.invoke(listener.getBean(), entity, oldEntity, history);
+            } else if (listener.getOperation() == DbOperation.UPDATE && parameterCount == 2) {
+                method.invoke(listener.getBean(), entity, oldEntity);
+            } else if (listener.getOperation() == DbOperation.DELETE && parameterCount == 2) {
+                Object history = readHistory(event, listener, method.getParameterTypes()[1]);
+                method.invoke(listener.getBean(), entity, history);
+            } else {
+                method.invoke(listener.getBean(), entity);
+            }
 
         } catch (Exception e) {
-            throw new RuntimeException("Error executing @UponInserting listener", e);
+            throw new RuntimeException("Error executing listener method", e);
+        }
+    }
+
+    private Object readHistory(DbChangeEvent event, ListenerDefinition listener, Class<?> historyParameterType) {
+        List<Object> history = readHistoryEntities(event, listener);
+
+        if (historyParameterType.isArray()) {
+            Object array = Array.newInstance(historyParameterType.getComponentType(), history.size());
+
+            for (int i = 0; i < history.size(); i++) {
+                Array.set(array, i, history.get(i));
+            }
+
+            return array;
+        }
+
+        return history;
+    }
+
+    private List<Object> readHistoryEntities(DbChangeEvent event, ListenerDefinition listener) {
+        if (jdbcTemplate == null || properties == null) {
+            return Collections.emptyList();
+        }
+
+        if (event.getId() == null) {
+            return Collections.emptyList();
+        }
+
+        String recordKey = resolveRecordKey(event, listener);
+
+        if (recordKey == null || recordKey.isBlank()) {
+            return Collections.emptyList();
+        }
+
+        String eventTable = properties.getEventTable();
+
+        if (!SAFE_TABLE_NAME.matcher(eventTable).matches()) {
+            throw new IllegalArgumentException("Invalid tentacolous.event-table: " + eventTable);
+        }
+
+        List<String> payloads = jdbcTemplate.query(
+                "SELECT payload FROM " + eventTable
+                        + " WHERE entity_name = ? "
+                        + "AND id < ? "
+                        + "AND operation IN ('INSERT', 'UPDATE') "
+                        + "AND (record_key = ? OR (record_key IS NULL AND payload::jsonb ->> ? = ?)) "
+                        + "ORDER BY id",
+                (rs, rowNum) -> rs.getString("payload"),
+                event.getEntityName(),
+                event.getId(),
+                recordKey,
+                listener.getRecordKeyField(),
+                recordKey
+        );
+
+        List<Object> history = new ArrayList<>(payloads.size());
+
+        for (String payload : payloads) {
+            try {
+                history.add(objectMapper.readValue(payload, listener.getEntityClass()));
+            } catch (Exception e) {
+                throw new RuntimeException("Error reading database change event history payload", e);
+            }
+        }
+
+        return history;
+    }
+
+    private String resolveRecordKey(DbChangeEvent event, ListenerDefinition listener) {
+        if (event.getRecordKey() != null && !event.getRecordKey().isBlank()) {
+            return event.getRecordKey();
+        }
+
+        try {
+            JsonNode payload = objectMapper.readTree(event.getPayload());
+            JsonNode keyNode = payload.get(listener.getRecordKeyField());
+
+            if (keyNode == null || keyNode.isNull()) {
+                return null;
+            }
+
+            return keyNode.asText();
+        } catch (Exception e) {
+            throw new RuntimeException("Error reading database change event record key", e);
         }
     }
 }

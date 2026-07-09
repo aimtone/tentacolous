@@ -86,6 +86,46 @@ class DbListenerMethodScannerTest {
                 .hasMessageContaining("must define field");
     }
 
+    @Test
+    void acceptsTwoParametersForUpdateListeners() {
+        ListenerRegistry registry = new ListenerRegistry();
+        DbListenerMethodScanner scanner = new DbListenerMethodScanner(registry);
+
+        scanner.postProcessAfterInitialization(new UpdateWithOldEntityListener(), "updateWithOldEntityListener");
+
+        assertThat(registry.getListeners(DbOperation.UPDATE, "User")).hasSize(1);
+    }
+
+    @Test
+    void acceptsThreeParametersForUpdateListenersWhenHistoryIsListOrArray() {
+        ListenerRegistry registry = new ListenerRegistry();
+        DbListenerMethodScanner scanner = new DbListenerMethodScanner(registry);
+
+        scanner.postProcessAfterInitialization(new UpdateWithHistoryListener(), "updateWithHistoryListener");
+
+        assertThat(registry.getListeners(DbOperation.UPDATE, "User")).hasSize(2);
+    }
+
+    @Test
+    void acceptsTwoParametersForDeleteListenersWhenHistoryIsListOrArray() {
+        ListenerRegistry registry = new ListenerRegistry();
+        DbListenerMethodScanner scanner = new DbListenerMethodScanner(registry);
+
+        scanner.postProcessAfterInitialization(new DeleteWithHistoryListener(), "deleteWithHistoryListener");
+
+        assertThat(registry.getListeners(DbOperation.DELETE, "User")).hasSize(2);
+    }
+
+    @Test
+    void rejectsTwoParametersForInsertListeners() {
+        ListenerRegistry registry = new ListenerRegistry();
+        DbListenerMethodScanner scanner = new DbListenerMethodScanner(registry);
+
+        assertThatThrownBy(() -> scanner.postProcessAfterInitialization(new InsertWithTwoParametersListener(), "invalid"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("exactly one parameter");
+    }
+
     static class UserListeners {
 
         @UponInserting(entity = User.class, entityName = "User")
@@ -125,6 +165,42 @@ class DbListenerMethodScannerTest {
 
         @UponInserting(entity = User.class, valueType = ValueType.BOOLEAN, value = "true")
         public void onInserting(User user) {
+        }
+    }
+
+    static class UpdateWithOldEntityListener {
+
+        @UponUpdating(entity = User.class)
+        public void onUpdating(User newUser, User oldUser) {
+        }
+    }
+
+    static class UpdateWithHistoryListener {
+
+        @UponUpdating(entity = User.class)
+        public void onUpdatingWithList(User newUser, User oldUser, List<User> history) {
+        }
+
+        @UponUpdating(entity = User.class)
+        public void onUpdatingWithArray(User newUser, User oldUser, User[] history) {
+        }
+    }
+
+    static class DeleteWithHistoryListener {
+
+        @UponDeleting(entity = User.class)
+        public void onDeletingWithList(User deletedUser, List<User> history) {
+        }
+
+        @UponDeleting(entity = User.class)
+        public void onDeletingWithArray(User deletedUser, User[] history) {
+        }
+    }
+
+    static class InsertWithTwoParametersListener {
+
+        @UponInserting(entity = User.class)
+        public void onInserting(User user, User otherUser) {
         }
     }
 

@@ -17,11 +17,15 @@ class DbChangeEventTest {
         event.setEntityName("User");
         event.setOperation("UPDATE");
         event.setPayload("{\"id\":1}");
+        event.setOldPayload("{\"id\":1,\"status\":\"OLD\"}");
+        event.setRecordKey("1");
 
         assertThat(event.getId()).isEqualTo(1L);
         assertThat(event.getEntityName()).isEqualTo("User");
         assertThat(event.getOperation()).isEqualTo("UPDATE");
         assertThat(event.getPayload()).isEqualTo("{\"id\":1}");
+        assertThat(event.getOldPayload()).isEqualTo("{\"id\":1,\"status\":\"OLD\"}");
+        assertThat(event.getRecordKey()).isEqualTo("1");
     }
 
     @Test

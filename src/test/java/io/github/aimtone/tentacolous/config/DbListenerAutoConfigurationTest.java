@@ -120,7 +120,7 @@ class DbListenerAutoConfigurationTest {
                     verify(jdbcTemplate).execute("CREATE TRIGGER person_tentacolous_listener_insert "
                             + "AFTER INSERT ON person "
                             + "FOR EACH ROW "
-                            + "EXECUTE FUNCTION db_change_event_notify_change('Person', '{}')");
+                            + "EXECUTE FUNCTION db_change_event_notify_change('Person', '{}', 'id')");
                     verify(taskScheduler).scheduleWithFixedDelay(any(Runnable.class), any(Instant.class), eq(Duration.ofSeconds(1)));
                 });
     }

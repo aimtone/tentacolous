@@ -136,11 +136,13 @@ public class DbChangeEventPoller implements SmartLifecycle {
         event.setEntityName(rs.getString("entity_name"));
         event.setOperation(rs.getString("operation"));
         event.setPayload(rs.getString("payload"));
+        event.setOldPayload(rs.getString("old_payload"));
+        event.setRecordKey(rs.getString("record_key"));
         return event;
     }
 
     private String selectSql() {
-        return "SELECT id, entity_name, operation, payload FROM " + properties.getEventTable()
+        return "SELECT id, entity_name, operation, payload, old_payload, record_key FROM " + properties.getEventTable()
                 + " WHERE status = 'PENDING' ORDER BY id LIMIT ?";
     }
 

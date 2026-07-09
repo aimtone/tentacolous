@@ -51,7 +51,11 @@ class DbListenerSchemaManagerTest {
         List<String> sql = sqlCaptor.getAllValues();
 
         assertThat(sql).anyMatch(statement -> statement.startsWith("CREATE TABLE IF NOT EXISTS db_change_event"));
+        assertThat(sql).anyMatch(statement -> statement.contains("ADD COLUMN IF NOT EXISTS old_payload"));
+        assertThat(sql).anyMatch(statement -> statement.contains("ADD COLUMN IF NOT EXISTS record_key"));
         assertThat(sql).anyMatch(statement -> statement.contains("CREATE OR REPLACE FUNCTION db_change_event_notify_change"));
+        assertThat(sql).anyMatch(statement -> statement.contains("old_payload_json := CASE WHEN TG_OP = 'UPDATE' THEN to_jsonb(OLD) ELSE NULL END"));
+        assertThat(sql).anyMatch(statement -> statement.contains("record_key_value := payload_json ->> record_key_field"));
         assertThat(sql).anyMatch(statement -> statement.contains("CREATE TRIGGER user_tentacolous_listener_insert"));
         assertThat(sql).anyMatch(statement -> statement.contains("CREATE TRIGGER user_tentacolous_listener_update"));
         assertThat(sql).anyMatch(statement -> statement.contains("CREATE TRIGGER user_tentacolous_listener_delete"));

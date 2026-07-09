@@ -357,6 +357,15 @@ public void onUserInserted(User user) {
 public void onPersonUpdated(Person person) {
     System.out.println("Updated: " + person.getEmail());
 }</code></pre>
+              <p>Tambien puedes recibir los valores anteriores del registro agregando un segundo parametro del mismo tipo de entidad.</p>
+              <pre><code>@UponUpdating(entity = Person.class)
+public void onPersonUpdated(Person newPerson, Person oldPerson) {
+}</code></pre>
+              <p>Si agregas un tercer parametro, Tentacolous entrega los snapshots anteriores de ese mismo registro, ordenados desde el mas antiguo al mas reciente.</p>
+              <pre><code>@UponUpdating(entity = Person.class)
+public void onPersonUpdated(Person newPerson, Person oldPerson, List&lt;Person&gt; history) {
+}</code></pre>
+              <p>El parametro de historico puede ser <code>List&lt;Person&gt;</code> o <code>Person[]</code>. Tentacolous relaciona el registro por su columna <code>@Id</code> cuando existe, o por <code>id</code> en caso contrario.</p>
               <p>Casos de uso: recalcular datos derivados, invalidar cache, notificar a otros sistemas o sincronizar con un servicio externo.</p>
               <h4>Update con filtro STRING</h4>
               <pre><code>@UponUpdating(
@@ -392,6 +401,7 @@ public void onInvoicePaidAt(Invoice invoice) {
 )
 public void onUserUpdated(User user) {
 }</code></pre>
+              <p>Las columnas excluidas se eliminan tanto del payload nuevo como del payload anterior.</p>
 
               <h3>UponDeleting</h3>
               <p><code>@UponDeleting</code> ejecuta un metodo cuando ocurre un <code>DELETE</code> en la tabla de la entidad. Para un delete, el payload contiene los valores previos del registro porque la fila ya no existe despues de eliminarse.</p>
@@ -399,6 +409,11 @@ public void onUserUpdated(User user) {
 public void onPersonDeleted(Person person) {
     System.out.println("Deleted: " + person.getEmail());
 }</code></pre>
+              <p>Tambien puedes recibir los snapshots anteriores de ese mismo registro agregando un segundo parametro.</p>
+              <pre><code>@UponDeleting(entity = Person.class)
+public void onPersonDeleted(Person person, List&lt;Person&gt; history) {
+}</code></pre>
+              <p>El parametro de historico puede ser <code>List&lt;Person&gt;</code> o <code>Person[]</code>.</p>
               <p>Casos de uso: limpiar recursos externos, eliminar datos relacionados en otra base de datos, notificar eliminaciones o registrar auditoria de borrado.</p>
               <h4>Delete con filtro STRING</h4>
               <pre><code>@UponDeleting(

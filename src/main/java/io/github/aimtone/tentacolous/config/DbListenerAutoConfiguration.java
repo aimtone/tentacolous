@@ -45,9 +45,11 @@ public class DbListenerAutoConfiguration {
     @ConditionalOnMissingBean
     public EventDispatcher eventDispatcher(
             ListenerRegistry listenerRegistry,
-            ObjectMapper objectMapper
+            ObjectMapper objectMapper,
+            org.springframework.beans.factory.ObjectProvider<JdbcTemplate> jdbcTemplate,
+            DbListenerProperties properties
     ) {
-        return new EventDispatcher(listenerRegistry, objectMapper);
+        return new EventDispatcher(listenerRegistry, objectMapper, jdbcTemplate.getIfAvailable(), properties);
     }
 
     @Bean

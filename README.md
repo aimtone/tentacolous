@@ -383,6 +383,24 @@ public void onPersonUpdated(Person person) {
 }
 ```
 
+You can also receive the previous record values by adding a second parameter of the same entity type:
+
+```java
+@UponUpdating(entity = Person.class)
+public void onPersonUpdated(Person newPerson, Person oldPerson) {
+}
+```
+
+If you add a third parameter, Tentacolous provides the previous snapshots for that same record, ordered from oldest to newest:
+
+```java
+@UponUpdating(entity = Person.class)
+public void onPersonUpdated(Person newPerson, Person oldPerson, List<Person> history) {
+}
+```
+
+The history parameter can be a `List<Person>` or `Person[]`. Tentacolous matches the record by its `@Id` column when available, otherwise by `id`.
+
 Use cases:
 
 - Recalculate derived data.
@@ -443,6 +461,7 @@ public void onUserUpdated(User user) {
 ```
 
 Use this when the `UPDATE` may touch sensitive columns that you do not want stored in the event table.
+Excluded columns are removed from both the new and previous payloads.
 
 ## UponDeleting
 
@@ -458,6 +477,16 @@ public void onPersonDeleted(Person person) {
     System.out.println("Deleted: " + person.getEmail());
 }
 ```
+
+You can also receive the previous snapshots for that same record by adding a second parameter:
+
+```java
+@UponDeleting(entity = Person.class)
+public void onPersonDeleted(Person person, List<Person> history) {
+}
+```
+
+The history parameter can be a `List<Person>` or `Person[]`.
 
 Use cases:
 

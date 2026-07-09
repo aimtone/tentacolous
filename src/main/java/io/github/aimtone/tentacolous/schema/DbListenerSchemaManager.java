@@ -103,6 +103,7 @@ public class DbListenerSchemaManager {
         }
 
         validateIdentifier(listener.getTableName(), "table");
+        validateIdentifier(listener.getRecordKeyField(), "record key field");
         validateExcludedColumns(listener);
         log.info("Creating Tentacolous {} trigger for table '{}' and entity '{}'",
                 listener.getOperation(),

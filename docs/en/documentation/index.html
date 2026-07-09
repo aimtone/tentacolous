@@ -357,6 +357,15 @@ public void onUserInserted(User user) {
 public void onPersonUpdated(Person person) {
     System.out.println("Updated: " + person.getEmail());
 }</code></pre>
+              <p>You can also receive the previous record values by adding a second parameter of the same entity type.</p>
+              <pre><code>@UponUpdating(entity = Person.class)
+public void onPersonUpdated(Person newPerson, Person oldPerson) {
+}</code></pre>
+              <p>If you add a third parameter, Tentacolous provides the previous snapshots for that same record, ordered from oldest to newest.</p>
+              <pre><code>@UponUpdating(entity = Person.class)
+public void onPersonUpdated(Person newPerson, Person oldPerson, List&lt;Person&gt; history) {
+}</code></pre>
+              <p>The history parameter can be a <code>List&lt;Person&gt;</code> or <code>Person[]</code>. Tentacolous matches the record by its <code>@Id</code> column when available, otherwise by <code>id</code>.</p>
               <p>Use cases: recalculate derived data, invalidate cache, notify other systems or synchronize with an external service.</p>
               <h4>Update with STRING filter</h4>
               <pre><code>@UponUpdating(
@@ -392,6 +401,7 @@ public void onInvoicePaidAt(Invoice invoice) {
 )
 public void onUserUpdated(User user) {
 }</code></pre>
+              <p>Excluded columns are removed from both the new and previous payloads.</p>
 
               <h3>UponDeleting</h3>
               <p><code>@UponDeleting</code> runs a method when a <code>DELETE</code> occurs on the entity table. For a delete, the payload contains the previous values of the record because the row no longer exists after deletion.</p>
@@ -399,6 +409,11 @@ public void onUserUpdated(User user) {
 public void onPersonDeleted(Person person) {
     System.out.println("Deleted: " + person.getEmail());
 }</code></pre>
+              <p>You can also receive the previous snapshots for that same record by adding a second parameter.</p>
+              <pre><code>@UponDeleting(entity = Person.class)
+public void onPersonDeleted(Person person, List&lt;Person&gt; history) {
+}</code></pre>
+              <p>The history parameter can be a <code>List&lt;Person&gt;</code> or <code>Person[]</code>.</p>
               <p>Use cases: clean up external resources, delete related data in another database, notify about deletions or register deletion audit data.</p>
               <h4>Delete with STRING filter</h4>
               <pre><code>@UponDeleting(
