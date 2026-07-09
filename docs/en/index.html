@@ -140,11 +140,11 @@ public void onPersonInserted(Person person) {
                 <pre><code>&lt;dependency&gt;
   &lt;groupId&gt;io.github.aimtone&lt;/groupId&gt;
   &lt;artifactId&gt;tentacolous&lt;/artifactId&gt;
-  &lt;version&gt;0.1.6&lt;/version&gt;
+  &lt;version&gt;0.1.7&lt;/version&gt;
 &lt;/dependency&gt;</code></pre>
               </div>
               <div class="tab-panel" id="en-gradle-dependency" role="tabpanel" hidden>
-                <pre><code>implementation 'io.github.aimtone:tentacolous:0.1.6'</code></pre>
+                <pre><code>implementation 'io.github.aimtone:tentacolous:0.1.7'</code></pre>
               </div>
             </div>
             <div class="code-block reveal">
@@ -188,13 +188,13 @@ public void onPersonInserted(Person person) {
               </div>
               <div class="tab-panel" id="en-update-annotation" role="tabpanel" hidden>
                 <pre><code>@UponUpdating(entity = Person.class)
-public void onPersonUpdated(Person person) {
-    syncProfile(person);
+public void onPersonUpdated(Person newPerson, Person oldPerson) {
+    syncProfile(newPerson);
 }</code></pre>
               </div>
               <div class="tab-panel" id="en-delete-annotation" role="tabpanel" hidden>
                 <pre><code>@UponDeleting(entity = Person.class)
-public void onPersonDeleted(Person person) {
+public void onPersonDeleted(Person person, List&lt;Person&gt; history) {
     removeFromIndex(person.getId());
 }</code></pre>
               </div>
@@ -308,7 +308,7 @@ public void onPersonDeleted(Person person) {
             Detect real changes, run your business logic and keep visibility over every processed event.
           </p>
           <div class="ending-actions">
-            <a class="button primary" href="#start">Start with 0.1.6</a>
+            <a class="button primary" href="#start">Start with 0.1.7</a>
             <a class="button" href="documentation/index.html">Read the docs</a>
             <a class="button" href="https://github.com/aimtone/tentacolous">View on GitHub</a>
           </div>

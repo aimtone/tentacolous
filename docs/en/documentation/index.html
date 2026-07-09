@@ -140,20 +140,20 @@
 
             <article id="install" class="doc-card reveal">
               <h2>Install from Maven Central</h2>
-              <p>Tentacolous is available from Maven Central. The latest stable version is <code>0.1.6</code>.</p>
-              <pre><code>io.github.aimtone:tentacolous:0.1.6</code></pre>
+              <p>Tentacolous is available from Maven Central. The latest stable version is <code>0.1.7</code>.</p>
+              <pre><code>io.github.aimtone:tentacolous:0.1.7</code></pre>
               <p>You can consume the stable release directly from your application build file.</p>
             </article>
 
             <article id="dependency" class="doc-card reveal">
               <h2>Dependency snippets</h2>
               <h3>Gradle</h3>
-              <pre><code>implementation 'io.github.aimtone:tentacolous:0.1.6'</code></pre>
+              <pre><code>implementation 'io.github.aimtone:tentacolous:0.1.7'</code></pre>
               <h3>Maven</h3>
               <pre><code>&lt;dependency&gt;
   &lt;groupId&gt;io.github.aimtone&lt;/groupId&gt;
   &lt;artifactId&gt;tentacolous&lt;/artifactId&gt;
-  &lt;version&gt;0.1.6&lt;/version&gt;
+  &lt;version&gt;0.1.7&lt;/version&gt;
 &lt;/dependency&gt;</code></pre>
               <h3>Gradle settings.gradle repositories</h3>
               <p>If your Gradle project centralizes repositories in <code>settings.gradle</code>, use Maven Central there:</p>
@@ -513,7 +513,9 @@ where event_object_table = 'person';</code></pre>
                 <li>A <code>db_change_event_notify_change()</code> function.</li>
                 <li>One trigger per table and operation.</li>
               </ul>
-              <p>The trigger stores <code>entity_name</code>, <code>operation</code>, <code>payload</code>, <code>status</code>, <code>attempts</code>, <code>last_error</code> and processing timestamps.</p>
+              <p>The trigger stores <code>entity_name</code>, <code>operation</code>, <code>payload</code>, <code>old_payload</code>, <code>record_key</code>, <code>status</code>, <code>attempts</code>, <code>last_error</code> and processing timestamps.</p>
+              <p><code>payload</code> contains the current row for inserts and updates, and the deleted row for deletes. <code>old_payload</code> contains the previous row only for updates. <code>record_key</code> identifies the affected record, using the entity <code>@Id</code> column when available or <code>id</code> otherwise.</p>
+              <p>When a listener asks for history, Tentacolous queries previous <code>INSERT</code> and <code>UPDATE</code> payloads for the same <code>entity_name</code> and <code>record_key</code>, ordered from oldest to newest.</p>
               <p>The poller looks for <code>PENDING</code> events, marks them as <code>PROCESSING</code>, runs the listener and finally marks them as <code>PROCESSED</code>. If an error happens, Tentacolous stores <code>last_error</code> and retries until <code>tentacolous.max-attempts</code> is reached.</p>
             </article>
 
@@ -533,6 +535,7 @@ where event_object_table = 'person';</code></pre>
               <ul class="clean-list">
                 <li>Create the table, function and triggers using controlled migrations.</li>
                 <li>Use <code>tentacolous.schema-management=validate</code> to verify infrastructure.</li>
+                <li>If you manage schema manually, include the <code>old_payload</code> and <code>record_key</code> columns and pass the record key field to the trigger function.</li>
                 <li>Monitor <code>FAILED</code> events.</li>
                 <li>Clean up or archive <code>db_change_event</code>.</li>
                 <li>Avoid slow logic inside listeners.</li>
