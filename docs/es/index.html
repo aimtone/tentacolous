@@ -188,12 +188,33 @@ public void onPersonInserted(Person person) {
               </div>
               <div class="tab-panel" id="es-update-annotation" role="tabpanel" hidden>
                 <pre><code>@UponUpdating(entity = Person.class)
+public void onPersonUpdated(Person person) {
+    syncProfile(person);
+}
+
+// o
+
+@UponUpdating(entity = Person.class)
 public void onPersonUpdated(Person newPerson, Person oldPerson) {
+    syncProfile(newPerson);
+}
+
+// o
+
+@UponUpdating(entity = Person.class)
+public void onPersonUpdated(Person newPerson, Person oldPerson, List&lt;Person&gt; history) {
     syncProfile(newPerson);
 }</code></pre>
               </div>
               <div class="tab-panel" id="es-delete-annotation" role="tabpanel" hidden>
                 <pre><code>@UponDeleting(entity = Person.class)
+public void onPersonDeleted(Person person) {
+    removeFromIndex(person.getId());
+}
+
+// o
+
+@UponDeleting(entity = Person.class)
 public void onPersonDeleted(Person person, List&lt;Person&gt; history) {
     removeFromIndex(person.getId());
 }</code></pre>

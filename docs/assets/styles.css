@@ -152,6 +152,23 @@ pre {
   background: var(--cyan);
 }
 
+.syntax-keyword { color: #ff7db8; }
+.syntax-type, .syntax-tag { color: #7ef7ff; }
+.syntax-annotation, .syntax-key { color: #91f7c4; }
+.syntax-string, .syntax-attr { color: #ffd166; }
+.syntax-number { color: #b8a1ff; }
+.syntax-comment { color: #78909c; font-style: italic; }
+
+:root[data-theme="light"] .syntax-keyword { color: #b42368; }
+:root[data-theme="light"] .syntax-type,
+:root[data-theme="light"] .syntax-tag { color: #006d77; }
+:root[data-theme="light"] .syntax-annotation,
+:root[data-theme="light"] .syntax-key { color: #27704a; }
+:root[data-theme="light"] .syntax-string,
+:root[data-theme="light"] .syntax-attr { color: #9a5b00; }
+:root[data-theme="light"] .syntax-number { color: #6941c6; }
+:root[data-theme="light"] .syntax-comment { color: #667784; }
+
 .menu-toggle {
   appearance: none;
   display: none;

@@ -112,3 +112,48 @@ document.querySelectorAll(".code-tabs").forEach((tabs) => {
     });
   });
 });
+
+const escapeCode = (value) => value
+  .replaceAll("&", "&amp;")
+  .replaceAll("<", "&lt;")
+  .replaceAll(">", "&gt;");
+
+const detectLanguage = (code) => {
+  const value = code.textContent.trim();
+  if (/^<[^>]+>|<dependency>/m.test(value)) return "xml";
+  if (/^\s*(?:@\w+|(?:public|private|protected)\s+|import\s+|package\s+)/m.test(value)) return "java";
+  if (/^\s*(?:implementation|plugins\s*\{|dependencies\s*\{)/m.test(value)) return "groovy";
+  if (/^\s*[\w.-]+:\s*(?:$|\S)/m.test(value)) return "yaml";
+  if (/^\s*[\w.-]+\s*=\s*.+/m.test(value)) return "properties";
+  if (/^\s*(?:select|insert|update|delete|create|alter|drop)\b/im.test(value)) return "sql";
+  return "plain";
+};
+
+const highlightCode = (source, language) => {
+  const tokenPattern = language === "xml"
+    ? /<!--[\s\S]*?-->|<\/?[\w:-]+(?:\s+[\w:-]+(?:\s*=\s*(?:"[^"]*"|'[^']*'))?)*\s*\/?>/g
+    : /\/\*[\s\S]*?\*\/|\/\/[^\n]*|#[^\n]*|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|@[A-Za-z_]\w*|\b(?:public|private|protected|static|final|class|interface|enum|extends|implements|return|new|void|if|else|for|while|switch|case|break|continue|try|catch|finally|throw|throws|true|false|null|import|package|this|super|instanceof|var|def|SELECT|FROM|WHERE|INSERT|INTO|UPDATE|DELETE|CREATE|ALTER|DROP|TABLE|VALUES|SET|AND|OR|NOT|NULL)\b|\b\d+(?:\.\d+)?(?:[A-Za-z]+)?\b|\b[A-Z][A-Za-z0-9_]*\b/g;
+  let output = "";
+  let cursor = 0;
+
+  for (const match of source.matchAll(tokenPattern)) {
+    const token = match[0];
+    output += escapeCode(source.slice(cursor, match.index));
+    let kind = "type";
+    if (/^(?:\/\/|\/\*|#|<!--)/.test(token)) kind = "comment";
+    else if (/^["']/.test(token)) kind = "string";
+    else if (/^@/.test(token)) kind = "annotation";
+    else if (/^\d/.test(token)) kind = "number";
+    else if (/^</.test(token)) kind = "tag";
+    else if (/^(?:public|private|protected|static|final|class|interface|enum|extends|implements|return|new|void|if|else|for|while|switch|case|break|continue|try|catch|finally|throw|throws|true|false|null|import|package|this|super|instanceof|var|def|SELECT|FROM|WHERE|INSERT|INTO|UPDATE|DELETE|CREATE|ALTER|DROP|TABLE|VALUES|SET|AND|OR|NOT|NULL)$/i.test(token)) kind = "keyword";
+    output += `<span class="syntax-${kind}">${escapeCode(token)}</span>`;
+    cursor = match.index + token.length;
+  }
+  return output + escapeCode(source.slice(cursor));
+};
+
+document.querySelectorAll("pre > code").forEach((code) => {
+  const language = detectLanguage(code);
+  code.classList.add(`language-${language}`);
+  if (language !== "plain") code.innerHTML = highlightCode(code.textContent, language);
+});

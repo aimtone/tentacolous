@@ -114,7 +114,7 @@
             <article id="overview" class="doc-card reveal">
               <h2>Resumen</h2>
               <p>Tentacolous es una libreria Spring Boot que ejecuta metodos Java cuando una tabla de base de datos recibe un <code>INSERT</code>, <code>UPDATE</code> o <code>DELETE</code>.</p>
-              <p>La diferencia importante es que Tentacolous no depende de que el cambio ocurra dentro de tu aplicacion. Si otra API, un script, DBeaver, una consola SQL o un sistema legacy modifica la base de datos, Tentacolous tambien puede detectarlo.</p>
+              <p>La diferencia importante es que Tentacolous reacciona a los cambios de la base de datos sin importar donde se originen.</p>
               <div class="steps-list">
                 <div><strong>1.</strong> Crea una tabla de eventos.</div>
                 <div><strong>2.</strong> Crea una funcion PostgreSQL.</div>
@@ -133,16 +133,8 @@
                 <li>Spring Boot.</li>
                 <li>Una aplicacion Spring Boot con un <code>DataSource</code> configurado.</li>
                 <li>PostgreSQL para la creacion automatica de triggers.</li>
-                <li>Maven o Gradle en la aplicacion que consumira Tentacolous.</li>
               </ul>
               <p>La creacion automatica de infraestructura de base de datos esta implementada actualmente para PostgreSQL.</p>
-            </article>
-
-            <article id="install" class="doc-card reveal">
-              <h2>Instalacion desde Maven Central</h2>
-              <p>Tentacolous esta disponible desde Maven Central. La ultima version estable es <code>0.1.7</code>.</p>
-              <pre><code>io.github.aimtone:tentacolous:0.1.7</code></pre>
-              <p>Puedes consumir la version estable directamente desde el archivo de build de tu aplicacion.</p>
             </article>
 
             <article id="dependency" class="doc-card reveal">
@@ -155,14 +147,6 @@
   &lt;artifactId&gt;tentacolous&lt;/artifactId&gt;
   &lt;version&gt;0.1.7&lt;/version&gt;
 &lt;/dependency&gt;</code></pre>
-              <h3>Repositorios en settings.gradle</h3>
-              <p>Si tu proyecto Gradle centraliza repositorios en <code>settings.gradle</code>, usa Maven Central ahi:</p>
-              <pre><code>dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-    repositories {
-        mavenCentral()
-    }
-}</code></pre>
             </article>
 
             <article id="config" class="doc-card reveal">
