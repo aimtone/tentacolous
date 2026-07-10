@@ -9,22 +9,6 @@ Everything you need to install, configure and operate Tentacolous in a Spring Bo
 This page expands the README with a more navigable structure. It keeps the real repository scope:
 Tentacolous uses PostgreSQL infrastructure, an event table and a Spring poller to execute annotated Java methods.
 
-[Overview](#overview)
-[Requirements](#requirements)
-[Version 0.1.6 dependency](#install)
-[Configuration](#config)
-[Entity mapping](#entity)
-[Annotations](#annotations)
-[Filter types](#filters)
-[Operations](#operations)
-[Invalid combinations](#invalid)
-[Manual testing](#manual-testing)
-[How it works](#internals)
-[Security](#security)
-[Production](#production)
-[Tests](#tests)
-[Limitations](#limitations)
-
 ## Overview {#overview}
 
 Tentacolous is a Spring Boot library that runs Java methods when a database table receives an `INSERT`, `UPDATE`, or `DELETE`.

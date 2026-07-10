@@ -81,6 +81,7 @@ plugins:
                 - 0.1.8: documentation/0.1.8/index.md
                 - 0.1.7: documentation/0.1.7/index.md
                 - 0.1.6: documentation/0.1.6/index.md
+            - Historial de cambios: changelog.md
   - search:
       lang:
         - en
@@ -138,6 +139,7 @@ nav:
       - 0.1.8: documentation/0.1.8/index.md
       - 0.1.7: documentation/0.1.7/index.md
       - 0.1.6: documentation/0.1.6/index.md
+  - Changelog: changelog.md
 
 extra:
   social:

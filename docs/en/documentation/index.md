@@ -8,32 +8,6 @@ Everything you need to install, configure and operate Tentacolous in a Spring Bo
 
 Learn how to add the dependency, configure event processing and create Java listeners that react to real PostgreSQL changes through triggers, an event table and a Spring poller.
 
-Start
-[Overview](#overview)
-[Requirements](#requirements)
-[Dependency snippets](#dependency)
-[Migrate from 0.1.7](#migration)
-
-Configure
-[Configuration](#config)
-[Entity mapping](#entity)
-
-Use listeners
-[Listeners and operations](#operations)
-[Annotations](#annotations)
-[Declarative filters](#filters)
-[Custom filters](#custom-filters)
-
-Validate
-[Invalid combinations](#invalid)
-[Manual testing](#manual-testing)
-[How it works](#internals)
-
-Operate
-[Security](#security)
-[Production](#production)
-[Tests](#tests)
-
 ## Overview {#overview}
 
 Tentacolous is a Spring Boot library that runs Java methods when a database table receives an `INSERT`, `UPDATE`, or `DELETE`.
