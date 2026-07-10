@@ -4,6 +4,7 @@ import io.github.aimtone.tentacolous.model.DbOperation;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -11,6 +12,9 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ListenerRegistry {
+
+    private static final Comparator<ListenerDefinition> LISTENER_ORDER =
+            Comparator.comparingInt(ListenerDefinition::getOrder);
 
     private final Map<DbOperation, Map<Class<?>, List<ListenerDefinition>>> listeners = new ConcurrentHashMap<>();
     private final Map<DbOperation, Map<String, List<ListenerDefinition>>> listenersByName = new ConcurrentHashMap<>();
@@ -41,6 +45,7 @@ public class ListenerRegistry {
                 .computeIfAbsent(operation, key -> new ConcurrentHashMap<>())
                 .computeIfAbsent(entityClass, key -> new ArrayList<>())
                 .add(listener);
+        listeners.get(operation).get(entityClass).sort(LISTENER_ORDER);
 
         registerEntityName(operation, entityClass.getName(), listener);
         registerEntityName(operation, entityClass.getSimpleName(), listener);
@@ -137,6 +142,7 @@ public class ListenerRegistry {
 
         if (!operationListeners.contains(listener)) {
             operationListeners.add(listener);
+            operationListeners.sort(LISTENER_ORDER);
         }
     }
 

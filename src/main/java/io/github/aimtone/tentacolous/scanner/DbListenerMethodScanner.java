@@ -3,8 +3,10 @@ package io.github.aimtone.tentacolous.scanner;
 import io.github.aimtone.tentacolous.annotations.UponDeleting;
 import io.github.aimtone.tentacolous.annotations.UponInserting;
 import io.github.aimtone.tentacolous.annotations.UponUpdating;
+import io.github.aimtone.tentacolous.annotations.TentacolousListener;
 import io.github.aimtone.tentacolous.annotations.ValueType;
 import io.github.aimtone.tentacolous.model.DbOperation;
+import io.github.aimtone.tentacolous.filter.TentacolousFilter;
 import io.github.aimtone.tentacolous.registry.ListenerDefinition;
 import io.github.aimtone.tentacolous.registry.ListenerFilter;
 import io.github.aimtone.tentacolous.registry.ListenerRegistry;
@@ -22,8 +24,10 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class DbListenerMethodScanner implements SmartInitializingSingleton, ApplicationContextAware {
 
@@ -70,12 +74,68 @@ public class DbListenerMethodScanner implements SmartInitializingSingleton, Appl
         Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(targetClass);
 
         for (Method method : methods) {
+            validateListenerAnnotationOperations(method);
+            registerTentacolousListener(bean, method);
             registerUponInserting(bean, method);
             registerUponUpdating(bean, method);
             registerUponDeleting(bean, method);
         }
 
         return bean;
+    }
+
+    private void registerTentacolousListener(Object bean, Method annotatedMethod) {
+        TentacolousListener annotation = annotatedMethod.getAnnotation(TentacolousListener.class);
+
+        if (annotation == null) {
+            return;
+        }
+
+        DbOperation operation = DbOperation.valueOf(annotation.action().name());
+        warnWhenCustomFilterOverridesDeclarativeFilter(
+                annotation.filter(),
+                annotation.valueType(),
+                annotation.field(),
+                annotation.value(),
+                "@TentacolousListener",
+                annotatedMethod
+        );
+        validateCustomFilterType(annotation.filter(), annotation.entity(), "@TentacolousListener");
+        ParameterMode parameterMode = parameterMode(operation);
+        validateMethod(
+                annotatedMethod,
+                annotation.entity(),
+                annotation.valueType(),
+                annotation.field(),
+                annotation.value(),
+                hasCustomFilter(annotation.filter()),
+                "@TentacolousListener",
+                parameterMode
+        );
+        Method invocableMethod = AopUtils.selectInvocableMethod(annotatedMethod, bean.getClass());
+
+        listenerRegistry.registerListener(new ListenerDefinition(
+                bean,
+                invocableMethod,
+                operation,
+                annotation.entity(),
+                resolveEntityName(annotation.entity(), annotation.entityName()),
+                resolveTableName(annotation.entity()),
+                resolveRecordKeyField(annotation.entity()),
+                filter(annotation.valueType(), annotation.field(), annotation.value()),
+                resolveCustomFilter(annotation.filter(), "@TentacolousListener"),
+                annotation.order(),
+                annotation.exclude()
+        ));
+        registeredListeners++;
+    }
+
+    private ParameterMode parameterMode(DbOperation operation) {
+        return switch (operation) {
+            case INSERT -> ParameterMode.SINGLE;
+            case UPDATE -> ParameterMode.UPDATE;
+            case DELETE -> ParameterMode.DELETE;
+        };
     }
 
     private void registerUponInserting(Object bean, Method annotatedMethod) {
@@ -85,7 +145,16 @@ public class DbListenerMethodScanner implements SmartInitializingSingleton, Appl
             return;
         }
 
-        validateMethod(annotatedMethod, annotation.entity(), annotation.valueType(), annotation.field(), annotation.value(), "@UponInserting", ParameterMode.SINGLE);
+        warnWhenCustomFilterOverridesDeclarativeFilter(
+                annotation.filter(),
+                annotation.valueType(),
+                annotation.field(),
+                annotation.value(),
+                "@UponInserting",
+                annotatedMethod
+        );
+        validateCustomFilterType(annotation.filter(), annotation.entity(), "@UponInserting");
+        validateMethod(annotatedMethod, annotation.entity(), annotation.valueType(), annotation.field(), annotation.value(), hasCustomFilter(annotation.filter()), "@UponInserting", ParameterMode.SINGLE);
         Method invocableMethod = AopUtils.selectInvocableMethod(annotatedMethod, bean.getClass());
 
         listenerRegistry.registerListener(new ListenerDefinition(
@@ -97,6 +166,8 @@ public class DbListenerMethodScanner implements SmartInitializingSingleton, Appl
                 resolveTableName(annotation.entity()),
                 resolveRecordKeyField(annotation.entity()),
                 filter(annotation.valueType(), annotation.field(), annotation.value()),
+                resolveCustomFilter(annotation.filter(), "@UponInserting"),
+                annotation.order(),
                 annotation.exclude()
         ));
         registeredListeners++;
@@ -109,7 +180,16 @@ public class DbListenerMethodScanner implements SmartInitializingSingleton, Appl
             return;
         }
 
-        validateMethod(annotatedMethod, annotation.entity(), annotation.valueType(), annotation.field(), annotation.value(), "@UponUpdating", ParameterMode.UPDATE);
+        warnWhenCustomFilterOverridesDeclarativeFilter(
+                annotation.filter(),
+                annotation.valueType(),
+                annotation.field(),
+                annotation.value(),
+                "@UponUpdating",
+                annotatedMethod
+        );
+        validateCustomFilterType(annotation.filter(), annotation.entity(), "@UponUpdating");
+        validateMethod(annotatedMethod, annotation.entity(), annotation.valueType(), annotation.field(), annotation.value(), hasCustomFilter(annotation.filter()), "@UponUpdating", ParameterMode.UPDATE);
         Method invocableMethod = AopUtils.selectInvocableMethod(annotatedMethod, bean.getClass());
 
         listenerRegistry.registerListener(new ListenerDefinition(
@@ -121,6 +201,8 @@ public class DbListenerMethodScanner implements SmartInitializingSingleton, Appl
                 resolveTableName(annotation.entity()),
                 resolveRecordKeyField(annotation.entity()),
                 filter(annotation.valueType(), annotation.field(), annotation.value()),
+                resolveCustomFilter(annotation.filter(), "@UponUpdating"),
+                annotation.order(),
                 annotation.exclude()
         ));
         registeredListeners++;
@@ -133,7 +215,16 @@ public class DbListenerMethodScanner implements SmartInitializingSingleton, Appl
             return;
         }
 
-        validateMethod(annotatedMethod, annotation.entity(), annotation.valueType(), annotation.field(), annotation.value(), "@UponDeleting", ParameterMode.DELETE);
+        warnWhenCustomFilterOverridesDeclarativeFilter(
+                annotation.filter(),
+                annotation.valueType(),
+                annotation.field(),
+                annotation.value(),
+                "@UponDeleting",
+                annotatedMethod
+        );
+        validateCustomFilterType(annotation.filter(), annotation.entity(), "@UponDeleting");
+        validateMethod(annotatedMethod, annotation.entity(), annotation.valueType(), annotation.field(), annotation.value(), hasCustomFilter(annotation.filter()), "@UponDeleting", ParameterMode.DELETE);
         Method invocableMethod = AopUtils.selectInvocableMethod(annotatedMethod, bean.getClass());
 
         listenerRegistry.registerListener(new ListenerDefinition(
@@ -145,6 +236,8 @@ public class DbListenerMethodScanner implements SmartInitializingSingleton, Appl
                 resolveTableName(annotation.entity()),
                 resolveRecordKeyField(annotation.entity()),
                 filter(annotation.valueType(), annotation.field(), annotation.value()),
+                resolveCustomFilter(annotation.filter(), "@UponDeleting"),
+                annotation.order(),
                 annotation.exclude()
         ));
         registeredListeners++;
@@ -156,6 +249,130 @@ public class DbListenerMethodScanner implements SmartInitializingSingleton, Appl
             String value
     ) {
         return new ListenerFilter(field, valueType, value);
+    }
+
+    private boolean hasCustomFilter(Class<? extends TentacolousFilter<?>> filterClass) {
+        return filterClass != TentacolousFilter.None.class;
+    }
+
+    private void validateListenerAnnotationOperations(Method method) {
+        Set<DbOperation> operations = EnumSet.noneOf(DbOperation.class);
+
+        addListenerOperation(method, operations, method.isAnnotationPresent(UponInserting.class), DbOperation.INSERT);
+        addListenerOperation(method, operations, method.isAnnotationPresent(UponUpdating.class), DbOperation.UPDATE);
+        addListenerOperation(method, operations, method.isAnnotationPresent(UponDeleting.class), DbOperation.DELETE);
+
+        TentacolousListener genericListener = method.getAnnotation(TentacolousListener.class);
+        if (genericListener != null) {
+            addListenerOperation(
+                    method,
+                    operations,
+                    true,
+                    DbOperation.valueOf(genericListener.action().name())
+            );
+        }
+    }
+
+    private void addListenerOperation(
+            Method method,
+            Set<DbOperation> operations,
+            boolean annotationPresent,
+            DbOperation operation
+    ) {
+        if (!annotationPresent) {
+            return;
+        }
+
+        if (!operations.add(operation)) {
+            throw new IllegalArgumentException(
+                    "Listener method cannot declare more than one Tentacolous listener annotation for "
+                            + operation + ": " + method.getName()
+                            + ". Use only one annotation for that operation, or split the method."
+            );
+        }
+    }
+
+    private void validateCustomFilterType(
+            Class<? extends TentacolousFilter<?>> filterClass,
+            Class<?> entityClass,
+            String annotationName
+    ) {
+        if (!hasCustomFilter(filterClass)) {
+            return;
+        }
+
+        Class<?> filterEntityType = resolveFilterEntityType(filterClass);
+        if (filterEntityType != null && !filterEntityType.isAssignableFrom(entityClass)) {
+            throw new IllegalArgumentException(
+                    annotationName + " filter " + filterClass.getName()
+                            + " expects entity " + filterEntityType.getName()
+                            + " but listener entity is " + entityClass.getName()
+            );
+        }
+    }
+
+    private void warnWhenCustomFilterOverridesDeclarativeFilter(
+            Class<? extends TentacolousFilter<?>> filterClass,
+            ValueType valueType,
+            String field,
+            String value,
+            String annotationName,
+            Method method
+    ) {
+        if (!hasCustomFilter(filterClass) || !hasAnyDeclarativeFilterPart(valueType, field, value)) {
+            return;
+        }
+
+        log.warn(
+                "{} on method {} declares custom filter {} together with field/value/valueType. "
+                        + "The custom filter has priority and the declarative filter will not be executed.",
+                annotationName,
+                method.getName(),
+                filterClass.getName()
+        );
+    }
+
+    private Class<?> resolveFilterEntityType(Class<?> filterClass) {
+        Class<?> currentClass = filterClass;
+
+        while (currentClass != null && currentClass != Object.class) {
+            Type genericSuperclass = currentClass.getGenericSuperclass();
+
+            if (genericSuperclass instanceof ParameterizedType parameterizedType
+                    && parameterizedType.getRawType() instanceof Class<?> rawType
+                    && TentacolousFilter.class.isAssignableFrom(rawType)) {
+                Type entityType = parameterizedType.getActualTypeArguments()[0];
+                return entityType instanceof Class<?> type ? type : null;
+            }
+
+            currentClass = currentClass.getSuperclass();
+        }
+
+        return null;
+    }
+
+    private TentacolousFilter<?> resolveCustomFilter(
+            Class<? extends TentacolousFilter<?>> filterClass,
+            String annotationName
+    ) {
+        if (!hasCustomFilter(filterClass)) {
+            return null;
+        }
+
+        if (applicationContext == null) {
+            throw new IllegalStateException(
+                    annotationName + " custom filter must be a Spring bean: " + filterClass.getName()
+            );
+        }
+
+        try {
+            return applicationContext.getBean(filterClass);
+        } catch (BeansException e) {
+            throw new IllegalStateException(
+                    annotationName + " custom filter must be a Spring bean: " + filterClass.getName(),
+                    e
+            );
+        }
     }
 
     private String resolveEntityName(Class<?> entityClass, String entityName) {
@@ -261,6 +478,7 @@ public class DbListenerMethodScanner implements SmartInitializingSingleton, Appl
             ValueType valueType,
             String field,
             String value,
+            boolean hasCustomFilter,
             String annotationName,
             ParameterMode parameterMode
     ) {
@@ -309,17 +527,44 @@ public class DbListenerMethodScanner implements SmartInitializingSingleton, Appl
             validateHistoryParameter(method, parameterTypes[1], 1, entityClass, annotationName);
         }
 
-        if (valueType != ValueType.NONE && (field == null || field.isBlank())) {
-            throw new IllegalArgumentException(
-                    annotationName + " method with value filter must define field: " + method.getName()
-            );
+        if (!hasCustomFilter) {
+            validateDeclarativeFilter(annotationName, method, valueType, field, value);
+        }
+    }
+
+    private void validateDeclarativeFilter(
+            String annotationName,
+            Method method,
+            ValueType valueType,
+            String field,
+            String value
+    ) {
+        boolean hasField = field != null && !field.isBlank();
+        boolean hasValue = value != null && !value.isBlank();
+        boolean hasValueType = valueType != null && valueType != ValueType.NONE;
+
+        if (!hasField && !hasValue && !hasValueType) {
+            return;
         }
 
-        if (valueType != ValueType.NONE && (value == null || value.isBlank())) {
-            throw new IllegalArgumentException(
-                    annotationName + " method with value filter must define value: " + method.getName()
-            );
+        if (hasField && hasValue && hasValueType) {
+            return;
         }
+
+        String example = annotationName + "(entity = " + method.getParameterTypes()[0].getSimpleName()
+                + ".class, field = \"name\", valueType = ValueType.STRING, value = \"Anthony\")";
+
+        throw new IllegalArgumentException(
+                annotationName + " declarative filter on method " + method.getName()
+                        + " is incomplete. field, valueType and value must be defined together. Example: "
+                        + example
+        );
+    }
+
+    private boolean hasAnyDeclarativeFilterPart(ValueType valueType, String field, String value) {
+        return (field != null && !field.isBlank())
+                || (value != null && !value.isBlank())
+                || (valueType != null && valueType != ValueType.NONE);
     }
 
     private String parameterDescription(ParameterMode parameterMode) {

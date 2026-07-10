@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Tentacolous Documentation</title>
+    <title>Tentacolous 0.1.8 Documentation</title>
     <meta name="description" content="Technical documentation for Tentacolous: installation, configuration, annotations, filters, testing, security and production.">
     <meta name="keywords" content="Tentacolous documentation, Spring Boot PostgreSQL listener, database triggers, Java annotations, database events, Maven Central">
     <meta name="author" content="Aimtone">
@@ -12,16 +12,16 @@
     <meta property="og:title" content="Tentacolous Documentation">
     <meta property="og:description" content="Complete guide for using Tentacolous in Spring Boot projects with PostgreSQL.">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://aimtone.github.io/tentacolous/en/documentation/0.1.7/">
+    <meta property="og:url" content="https://aimtone.github.io/tentacolous/en/documentation/0.1.8/">
     <meta property="og:image" content="https://aimtone.github.io/tentacolous/assets/logoblanco.png">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Tentacolous Documentation">
     <meta name="twitter:description" content="Complete guide for using Tentacolous in Spring Boot projects with PostgreSQL.">
     <meta name="twitter:image" content="https://aimtone.github.io/tentacolous/assets/logoblanco.png">
-    <link rel="canonical" href="https://aimtone.github.io/tentacolous/en/documentation/0.1.7/">
-    <link rel="alternate" hreflang="en" href="https://aimtone.github.io/tentacolous/en/documentation/0.1.7/">
-    <link rel="alternate" hreflang="es" href="https://aimtone.github.io/tentacolous/es/documentation/">
-    <link rel="alternate" hreflang="x-default" href="https://aimtone.github.io/tentacolous/en/documentation/0.1.7/">
+    <link rel="canonical" href="https://aimtone.github.io/tentacolous/en/documentation/0.1.8/">
+    <link rel="alternate" hreflang="en" href="https://aimtone.github.io/tentacolous/en/documentation/0.1.8/">
+    <link rel="alternate" hreflang="es" href="https://aimtone.github.io/tentacolous/es/documentation/0.1.8/">
+    <link rel="alternate" hreflang="x-default" href="https://aimtone.github.io/tentacolous/en/documentation/0.1.8/">
     <link rel="icon" href="../../../assets/favicon_32.png" type="image/png" sizes="32x32">
     <script>
       (() => {
@@ -47,9 +47,9 @@
         <div class="nav-links" id="en-docs-menu" data-nav-menu>
           <a href="../../index.html">Home</a>
           <a class="nav-external" href="https://github.com/aimtone/tentacolous">GitHub</a>
-          <div class="nav-version"><span>Version</span><select aria-label="Documentation version" data-version-selector><option value="../0.1.8/index.html">0.1.8</option><option value="../0.1.7/index.html" selected>0.1.7</option><option value="../0.1.6/index.html">0.1.6</option></select></div>
+          <div class="nav-version"><span>Version</span><select aria-label="Documentation version" data-version-selector><option value="../0.1.8/index.html" selected>0.1.8</option><option value="../0.1.7/index.html">0.1.7</option><option value="../0.1.6/index.html">0.1.6</option></select></div>
           <span class="language-switch" aria-label="Language selector">
-            <a href="../../../es/documentation/0.1.7/index.html">ES</a>
+            <a href="../../../es/documentation/0.1.8/index.html">ES</a>
             <a class="active" href="index.html">EN</a>
           </span>
           <button class="theme-toggle" type="button" aria-label="Switch to light theme" aria-pressed="false" data-theme-toggle>
@@ -87,18 +87,22 @@
               <a href="#overview">Overview</a>
               <a href="#requirements">Requirements</a>
               <a href="#dependency">Dependency snippets</a>
-              <a href="#migration">Migrate from 0.1.6</a>
+              <a href="#migration">Migrate from 0.1.7</a>
             </div>
             <div class="docs-nav-group">
               <span>Configure</span>
               <a href="#config">Configuration</a>
               <a href="#entity">Entity mapping</a>
-              <a href="#annotations">Annotations</a>
-              <a href="#filters">Filter types</a>
             </div>
             <div class="docs-nav-group">
-              <span>Use</span>
-              <a href="#operations">Operations</a>
+              <span>Use listeners</span>
+              <a href="#operations">Listeners and operations</a>
+              <a href="#annotations">Annotations</a>
+              <a href="#filters">Declarative filters</a>
+              <a href="#custom-filters">Custom filters</a>
+            </div>
+            <div class="docs-nav-group">
+              <span>Validate</span>
               <a href="#invalid">Invalid combinations</a>
               <a href="#manual-testing">Manual testing</a>
               <a href="#internals">How it works</a>
@@ -116,6 +120,7 @@
               <h2>Overview</h2>
               <p>Tentacolous is a Spring Boot library that runs Java methods when a database table receives an <code>INSERT</code>, <code>UPDATE</code>, or <code>DELETE</code>.</p>
               <p>The important difference is that Tentacolous reacts to database changes regardless of where they originate.</p>
+              <p><strong>Version 0.1.8 focuses on reusable programmatic filters.</strong> A filter can inspect the current entity, the previous entity during updates, and the operation before deciding whether the listener should run. This works with the new generic <code>@TentacolousListener</code> and with the existing <code>@UponInserting</code>, <code>@UponUpdating</code>, and <code>@UponDeleting</code> annotations.</p>
               <div class="steps-list">
                 <div><strong>1.</strong> It creates an event table.</div>
                 <div><strong>2.</strong> It creates a PostgreSQL function.</div>
@@ -141,35 +146,26 @@
             <article id="dependency" class="doc-card reveal">
               <h2>Dependency snippets</h2>
               <h3>Gradle</h3>
-              <pre><code>implementation 'io.github.aimtone:tentacolous:0.1.7'</code></pre>
+              <pre><code>implementation 'io.github.aimtone:tentacolous:0.1.8'</code></pre>
               <h3>Maven</h3>
               <pre><code>&lt;dependency&gt;
   &lt;groupId&gt;io.github.aimtone&lt;/groupId&gt;
   &lt;artifactId&gt;tentacolous&lt;/artifactId&gt;
-  &lt;version&gt;0.1.7&lt;/version&gt;
+  &lt;version&gt;0.1.8&lt;/version&gt;
 &lt;/dependency&gt;</code></pre>
             </article>
 
             <article id="migration" class="doc-card reveal">
-              <h2>Migrating from 0.1.6</h2>
-              <p>Version <code>0.1.7</code> adds access to the previous entity and record history. Existing one-parameter listeners continue to work, so adopting the new method signatures is optional.</p>
-              <h3>Update the dependency</h3>
-              <pre><code>&lt;version&gt;0.1.7&lt;/version&gt;</code></pre>
-              <h3>Optional update listener signatures</h3>
-              <pre><code>@UponUpdating(entity = Person.class)
-public void onPersonUpdated(Person newPerson, Person oldPerson) {
-}
-
-@UponUpdating(entity = Person.class)
-public void onPersonUpdated(Person newPerson, Person oldPerson, List&lt;Person&gt; history) {
-}</code></pre>
-              <h3>Optional delete history</h3>
-              <pre><code>@UponDeleting(entity = Person.class)
-public void onPersonDeleted(Person person, List&lt;Person&gt; history) {
-}</code></pre>
-              <h3>Database infrastructure</h3>
-              <p>With <code>tentacolous.schema-management=auto</code>, Tentacolous adds the required <code>old_payload</code> and <code>record_key</code> columns and updates its trigger function automatically.</p>
-              <p>With <code>schema-management=none</code>, update the manually managed event table and trigger function before using previous entities or history. With <code>validate</code>, the application validates the infrastructure but does not modify it.</p>
+              <h2>Migrating from 0.1.7</h2>
+              <p>Version <code>0.1.8</code> remains compatible with existing listeners. You do not need to replace <code>@UponInserting</code>, <code>@UponUpdating</code>, or <code>@UponDeleting</code>, and this release requires no database infrastructure changes.</p>
+              <ul class="clean-list">
+                <li>Use <code>@TentacolousListener</code> only when you prefer the generic annotation with <code>action</code>.</li>
+                <li>Custom filters are optional Spring beans extending <code>TentacolousFilter&lt;T&gt;</code>.</li>
+                <li>The filter generic type must be compatible with the listener entity.</li>
+                <li>If a custom filter is declared together with <code>field</code>, <code>valueType</code>, or <code>value</code>, the custom filter has priority and Tentacolous logs a warning.</li>
+                <li>Declarative filters must define <code>field</code>, <code>valueType</code>, and <code>value</code> together.</li>
+                <li>Each method may declare one listener annotation per operation.</li>
+              </ul>
             </article>
 
             <article id="config" class="doc-card reveal">
@@ -248,68 +244,16 @@ public class Person {
               <p>That is why the annotations do not have a <code>table</code> parameter: the selected entity already represents the table.</p>
             </article>
 
-            <article id="annotations" class="doc-card reveal">
-              <h2>Annotation parameters</h2>
-              <p>The three annotations have the same shape: <code>@UponInserting(...)</code>, <code>@UponUpdating(...)</code> and <code>@UponDeleting(...)</code>.</p>
-              <table class="doc-table">
-                <thead><tr><th>Parameter</th><th>Required</th><th>Description</th></tr></thead>
-                <tbody>
-                  <tr><td><code>entity</code></td><td>Yes</td><td>Entity class that represents the table and receives the deserialized payload.</td></tr>
-                  <tr><td><code>entityName</code></td><td>No</td><td>Logical event name. If omitted, Tentacolous uses the class simple name.</td></tr>
-                  <tr><td><code>field</code></td><td>Only with filters</td><td>Payload field to compare.</td></tr>
-                  <tr><td><code>valueType</code></td><td>Only with filters</td><td>Type used to interpret <code>value</code>.</td></tr>
-                  <tr><td><code>value</code></td><td>Only with filters</td><td>Expected value, always written as text.</td></tr>
-                  <tr><td><code>exclude</code></td><td>No</td><td>Columns that should not be stored in the event payload.</td></tr>
-                </tbody>
-              </table>
-              <h3>About entityName</h3>
-              <p>Most of the time, you do not need <code>entityName</code>. By default, <code>@UponInserting(entity = Person.class)</code> uses <code>Person</code>. The value is stored in <code>db_change_event.entity_name</code> and is used internally to match events with listeners.</p>
-              <p>Use <code>entityName</code> only for advanced cases where you need a stable logical name, for example when external infrastructure already writes events with a specific name.</p>
-              <h3>About exclude</h3>
-              <p><code>exclude</code> does not filter listeners. It prevents specific columns from being stored in the event JSON payload.</p>
-              <pre><code>@UponInserting(
-    entity = User.class,
-    exclude = {"password", "token", "secret_key"}
-)
-public void onUserInserted(User user) {
-}</code></pre>
-              <p>This matters because the event table may contain business data. You usually do not want secrets stored there.</p>
-            </article>
-
-            <article id="filters" class="doc-card reveal">
-              <h2>Filter types</h2>
-              <p>Filters always use this structure:</p>
-              <pre><code>field = "fieldName",
-valueType = ValueType.TYPE,
-value = "expected value"</code></pre>
-              <p>If you use <code>valueType</code>, you must also define <code>field</code> and <code>value</code>.</p>
-              <table class="doc-table">
-                <thead><tr><th>ValueType</th><th>value format</th><th>Example</th></tr></thead>
-                <tbody>
-                  <tr><td><code>STRING</code></td><td>Exact text</td><td><code>"APPROVED"</code></td></tr>
-                  <tr><td><code>BOOLEAN</code></td><td><code>true</code> or <code>false</code></td><td><code>"true"</code></td></tr>
-                  <tr><td><code>NUMBER</code></td><td>Long integer number</td><td><code>"1"</code></td></tr>
-                  <tr><td><code>INTEGER</code></td><td>Integer number</td><td><code>"7"</code></td></tr>
-                  <tr><td><code>LONG</code></td><td>Long integer number</td><td><code>"999"</code></td></tr>
-                  <tr><td><code>DECIMAL</code></td><td>Exact decimal</td><td><code>"10.50"</code></td></tr>
-                  <tr><td><code>DOUBLE</code></td><td>Floating point decimal</td><td><code>"3.14"</code></td></tr>
-                  <tr><td><code>DATE</code></td><td>ISO date</td><td><code>"2026-07-07"</code></td></tr>
-                  <tr><td><code>TIME</code></td><td>ISO time</td><td><code>"13:45:00"</code></td></tr>
-                  <tr><td><code>DATETIME</code></td><td>ISO instant or datetime</td><td><code>"2026-07-07T13:45:00Z"</code></td></tr>
-                  <tr><td><code>UUID</code></td><td>Canonical UUID</td><td><code>"550e8400-e29b-41d4-a716-446655440000"</code></td></tr>
-                </tbody>
-              </table>
-            </article>
-
             <article id="operations" class="doc-card reveal">
-              <h2>Operations</h2>
+              <h2>Listeners and operations</h2>
+              <p>Start with the operation-specific annotations. They remain fully supported in 0.1.8 and now also accept custom filters. The generic listener is explained afterward as an optional alternative.</p>
               <h3>UponInserting</h3>
               <p><code>@UponInserting</code> runs a method when an <code>INSERT</code> occurs on the entity table.</p>
               <pre><code>@UponInserting(entity = Person.class)
 public void onPersonInserted(Person person) {
     System.out.println("Inserted: " + person.getEmail());
 }</code></pre>
-              <p>Use cases: run logic after a record is created, send a notification, publish a Kafka message or create an audit record.</p>
+              <p>Use cases: run logic after a record is created, send a notification, start a workflow or create an audit record.</p>
               <h4>Insert with explicit logical name</h4>
               <pre><code>@UponInserting(entity = Person.class, entityName = "Person")
 public void onPersonInserted(Person person) {
@@ -447,6 +391,138 @@ public void onSessionDeleted(Session session) {
 )
 public void onUserDeleted(User user) {
 }</code></pre>
+              <h3>Generic alternative: TentacolousListener</h3>
+              <p><code>@TentacolousListener</code> is the generic alternative. Its <code>action</code> determines the operation and valid method signature.</p>
+              <pre><code>@TentacolousListener(entity = Person.class, action = ActionListener.INSERT)
+public void onPersonInserted(Person person) {
+}</code></pre>
+              <pre><code>@TentacolousListener(entity = Person.class, action = ActionListener.UPDATE)
+public void onPersonUpdated(Person newPerson, Person oldPerson, List&lt;Person&gt; history) {
+}</code></pre>
+              <pre><code>@TentacolousListener(entity = Person.class, action = ActionListener.DELETE)
+public void onPersonDeleted(Person person, List&lt;Person&gt; history) {
+}</code></pre>
+              <p>The parameter rules are identical to the corresponding operation-specific annotations.</p>
+            </article>
+
+            <article id="annotations" class="doc-card reveal">
+              <h2>Annotation parameters</h2>
+              <p>The operation-specific annotations and <code>@TentacolousListener(...)</code> share the same listener configuration.</p>
+              <table class="doc-table">
+                <thead><tr><th>Parameter</th><th>Required</th><th>Description</th></tr></thead>
+                <tbody>
+                  <tr><td><code>entity</code></td><td>Yes</td><td>Entity class that represents the table and receives the deserialized payload.</td></tr>
+                  <tr><td><code>action</code></td><td>Only for <code>@TentacolousListener</code></td><td><code>ActionListener.INSERT</code>, <code>ActionListener.UPDATE</code>, or <code>ActionListener.DELETE</code>.</td></tr>
+                  <tr><td><code>entityName</code></td><td>No</td><td>Logical event name. If omitted, Tentacolous uses the class simple name.</td></tr>
+                  <tr><td><code>field</code></td><td>Only with filters</td><td>Payload field to compare.</td></tr>
+                  <tr><td><code>valueType</code></td><td>Only with filters</td><td>Type used to interpret <code>value</code>.</td></tr>
+                  <tr><td><code>value</code></td><td>Only with filters</td><td>Expected value, always written as text.</td></tr>
+                  <tr><td><code>filter</code></td><td>No</td><td>Spring bean extending <code>TentacolousFilter&lt;T&gt;</code>. It replaces the declarative filter.</td></tr>
+                  <tr><td><code>order</code></td><td>No</td><td>Listener execution order. Lower values run first; the default is <code>0</code>.</td></tr>
+                  <tr><td><code>exclude</code></td><td>No</td><td>Columns that should not be stored in the event payload.</td></tr>
+                </tbody>
+              </table>
+              <h3>Listener ordering</h3>
+              <p>Use <code>order</code> when several listeners handle the same entity and operation. Ordering works across specific and generic annotations.</p>
+              <pre><code>@UponUpdating(entity = Person.class, order = 10)
+public void updateProfile(Person person) {
+}
+
+@TentacolousListener(
+    entity = Person.class,
+    action = ActionListener.UPDATE,
+    order = 20
+)
+public void registerAudit(Person person) {
+}</code></pre>
+              <p>If a listener fails, subsequent listeners are not invoked and the event follows the normal retry flow. Listener side effects should be idempotent.</p>
+              <h3>About entityName</h3>
+              <p>Most of the time, you do not need <code>entityName</code>. By default, <code>@UponInserting(entity = Person.class)</code> uses <code>Person</code>. The value is stored in <code>db_change_event.entity_name</code> and is used internally to match events with listeners.</p>
+              <p>Use <code>entityName</code> only for advanced cases where you need a stable logical name, for example when external infrastructure already writes events with a specific name.</p>
+              <h3>About exclude</h3>
+              <p><code>exclude</code> does not filter listeners. It prevents specific columns from being stored in the event JSON payload.</p>
+              <pre><code>@UponInserting(
+    entity = User.class,
+    exclude = {"password", "token", "secret_key"}
+)
+public void onUserInserted(User user) {
+}</code></pre>
+              <p>This matters because the event table may contain business data. You usually do not want secrets stored there.</p>
+            </article>
+
+            <article id="filters" class="doc-card reveal">
+              <h2>Filter types</h2>
+              <p>Filters always use this structure:</p>
+              <pre><code>field = "fieldName",
+valueType = ValueType.TYPE,
+value = "expected value"</code></pre>
+              <p><code>field</code>, <code>valueType</code>, and <code>value</code> must be declared together. If one is missing, Tentacolous fails during listener scanning and prints an example of the valid form.</p>
+              <table class="doc-table">
+                <thead><tr><th>ValueType</th><th>value format</th><th>Example</th></tr></thead>
+                <tbody>
+                  <tr><td><code>STRING</code></td><td>Exact text</td><td><code>"APPROVED"</code></td></tr>
+                  <tr><td><code>BOOLEAN</code></td><td><code>true</code> or <code>false</code></td><td><code>"true"</code></td></tr>
+                  <tr><td><code>NUMBER</code></td><td>Long integer number</td><td><code>"1"</code></td></tr>
+                  <tr><td><code>INTEGER</code></td><td>Integer number</td><td><code>"7"</code></td></tr>
+                  <tr><td><code>LONG</code></td><td>Long integer number</td><td><code>"999"</code></td></tr>
+                  <tr><td><code>DECIMAL</code></td><td>Exact decimal</td><td><code>"10.50"</code></td></tr>
+                  <tr><td><code>DOUBLE</code></td><td>Floating point decimal</td><td><code>"3.14"</code></td></tr>
+                  <tr><td><code>DATE</code></td><td>ISO date</td><td><code>"2026-07-07"</code></td></tr>
+                  <tr><td><code>TIME</code></td><td>ISO time</td><td><code>"13:45:00"</code></td></tr>
+                  <tr><td><code>DATETIME</code></td><td>ISO instant or datetime</td><td><code>"2026-07-07T13:45:00Z"</code></td></tr>
+                  <tr><td><code>UUID</code></td><td>Canonical UUID</td><td><code>"550e8400-e29b-41d4-a716-446655440000"</code></td></tr>
+                </tbody>
+              </table>
+            </article>
+
+            <article id="custom-filters" class="doc-card reveal">
+              <h2>Custom filters</h2>
+              <p>Programmatic filtering is the main addition in <code>0.1.8</code>. Define the rule once in a reusable class and reference it from any listener annotation. The filter class must be a Spring bean.</p>
+              <pre><code>@Component
+public class ActivePersonFilter extends TentacolousFilter&lt;Person&gt; {
+
+    @Override
+    public boolean accept(TentacolousFilterContext&lt;Person&gt; context) {
+        Person person = context.getEntity();
+        Person oldPerson = context.getOldEntity();
+
+        return person.isActive()
+                &amp;&amp; (oldPerson == null
+                    || !Objects.equals(person.getStatus(), oldPerson.getStatus()));
+    }
+}</code></pre>
+              <pre><code>@TentacolousListener(
+    entity = Person.class,
+    action = ActionListener.UPDATE,
+    filter = ActivePersonFilter.class
+)
+public void onActivePersonUpdated(Person newPerson, Person oldPerson) {
+}</code></pre>
+              <h3>Available on every annotation</h3>
+              <p><code>@TentacolousListener</code> is optional. Existing annotations remain available and now accept the same custom filter:</p>
+              <pre><code>@UponInserting(entity = Person.class, filter = ActivePersonFilter.class)
+public void onPersonInserted(Person person) {
+}
+
+@UponUpdating(entity = Person.class, filter = ActivePersonFilter.class)
+public void onPersonUpdated(Person newPerson, Person oldPerson) {
+}
+
+@UponDeleting(entity = Person.class, filter = ActivePersonFilter.class)
+public void onPersonDeleted(Person person) {
+}</code></pre>
+              <table class="doc-table">
+                <thead><tr><th>Annotation</th><th>Operation</th><th>Custom filter</th></tr></thead>
+                <tbody>
+                  <tr><td><code>@UponInserting</code></td><td>INSERT</td><td>Supported</td></tr>
+                  <tr><td><code>@UponUpdating</code></td><td>UPDATE</td><td>Supported</td></tr>
+                  <tr><td><code>@UponDeleting</code></td><td>DELETE</td><td>Supported</td></tr>
+                  <tr><td><code>@TentacolousListener</code></td><td>Selected with <code>action</code></td><td>Supported</td></tr>
+                </tbody>
+              </table>
+              <p><code>getEntity()</code> contains the current payload. <code>getOldEntity()</code> is available for updates and is <code>null</code> for inserts and deletes. The context also exposes <code>getOperation()</code>, <code>getEventId()</code>, <code>getEntityName()</code>, and <code>getRecordKey()</code>.</p>
+              <p>For updates, <code>getChangedFields()</code> returns the changed JSON field names and <code>hasChanged("status")</code> checks one field. Inserts and deletes return an empty set and <code>false</code>.</p>
+              <p>When <code>filter</code> is configured together with <code>field</code>, <code>valueType</code>, or <code>value</code>, Tentacolous logs a warning. The custom filter has priority and the declarative filter is not executed. Filter errors follow the normal event retry flow.</p>
             </article>
 
             <article id="invalid" class="doc-card reveal">
@@ -468,6 +544,29 @@ public void invalid(Person person) {
 )
 public void invalid(Person person) {
 }</code></pre>
+              <h3>Missing valueType</h3>
+              <pre><code>@UponUpdating(
+    entity = Person.class,
+    field = "name",
+    value = "Anthony"
+)
+public void invalid(Person person) {
+}</code></pre>
+              <p>Use the complete declarative filter instead:</p>
+              <pre><code>@UponUpdating(
+    entity = Person.class,
+    field = "name",
+    valueType = ValueType.STRING,
+    value = "Anthony"
+)
+public void valid(Person person) {
+}</code></pre>
+              <h3>Same operation declared twice</h3>
+              <pre><code>@UponUpdating(entity = Person.class)
+@TentacolousListener(entity = Person.class, action = ActionListener.UPDATE)
+public void invalid(Person person) {
+}</code></pre>
+              <p>A method can listen to different operations, but not to the same operation twice.</p>
               <h3>Method with more than one parameter</h3>
               <pre><code>@UponInserting(entity = Person.class)
 public void invalid(Person person, String other) {

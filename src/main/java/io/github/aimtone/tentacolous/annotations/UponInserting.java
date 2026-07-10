@@ -1,5 +1,7 @@
 package io.github.aimtone.tentacolous.annotations;
 
+import io.github.aimtone.tentacolous.filter.TentacolousFilter;
+
 import java.lang.annotation.*;
 
 @Target(ElementType.METHOD)
@@ -18,6 +20,11 @@ public @interface UponInserting {
     ValueType valueType() default ValueType.NONE;
 
     String value() default "";
+
+    Class<? extends TentacolousFilter<?>> filter() default TentacolousFilter.None.class;
+
+    /** Lower values are invoked first when multiple listeners match the same event. */
+    int order() default 0;
 
     String[] exclude() default {};
 }

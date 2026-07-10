@@ -13,6 +13,10 @@
 - [Features](#what-makes-tentacolous-different)
 - [Requirements](#requirements)
 - [Quick Example](#quick-example)
+- [Generic Listener](#generic-listener)
+- [Custom Filters](#custom-filters)
+- [Listener Ordering](#listener-ordering)
+- [Migrating from 0.1.7](#migrating-from-017)
 - [Installation](#installation)
 - [Configuration](#configuration)
 - [Use Cases](#use-cases)
@@ -109,6 +113,119 @@ public void onPersonDeleted(Person person, List<Person> history) {
 }
 ```
 
+## Generic Listener
+
+Version `0.1.8` adds `@TentacolousListener` as a generic alternative to the three operation-specific annotations. Select the operation with `ActionListener.INSERT`, `ActionListener.UPDATE`, or `ActionListener.DELETE`:
+
+```java
+@TentacolousListener(
+    entity = Person.class,
+    action = ActionListener.INSERT
+)
+public void onPersonInserted(Person person) {
+}
+```
+
+```java
+@TentacolousListener(
+    entity = Person.class,
+    action = ActionListener.UPDATE
+)
+public void onPersonUpdated(Person newPerson, Person oldPerson, List<Person> history) {
+}
+```
+
+```java
+@TentacolousListener(
+    entity = Person.class,
+    action = ActionListener.DELETE
+)
+public void onPersonDeleted(Person person, List<Person> history) {
+}
+```
+
+The generic annotation supports the same `entityName`, `field`, `valueType`, `value`, `filter`, `order`, and `exclude` parameters as the operation-specific annotations.
+
+## Custom Filters
+
+All four listener annotations support Spring-managed programmatic filters:
+
+```java
+@TentacolousListener(
+    entity = Person.class,
+    action = ActionListener.UPDATE,
+    filter = ActivePersonFilter.class
+)
+public void onActivePersonUpdated(Person newPerson, Person oldPerson) {
+}
+```
+
+```java
+@Component
+public class ActivePersonFilter extends TentacolousFilter<Person> {
+
+    @Override
+    public boolean accept(TentacolousFilterContext<Person> context) {
+        Person person = context.getEntity();
+        Person oldPerson = context.getOldEntity();
+
+        return person.isActive()
+                && oldPerson != null
+                && !Objects.equals(person.getStatus(), oldPerson.getStatus());
+    }
+}
+```
+
+`getOldEntity()` is available for updates and is `null` for inserts and deletes. `getOperation()` identifies the current database operation. When `filter` is configured together with `field`, `valueType`, or `value`, the custom filter has priority. Tentacolous logs a warning and the declarative filter is not executed.
+
+The context also exposes event metadata:
+
+```java
+context.getEventId();
+context.getEntityName();
+context.getRecordKey();
+```
+
+For updates, the context reports which payload fields changed:
+
+```java
+context.getChangedFields();
+context.hasChanged("status");
+```
+
+For inserts and deletes, `getChangedFields()` returns an empty set and `hasChanged(...)` returns `false`.
+
+## Listener Ordering
+
+Use `order` when several listeners handle the same entity and operation. Lower values run first; the default is `0`.
+
+```java
+@UponUpdating(entity = Person.class, order = 10)
+public void updateProfile(Person person) {
+}
+
+@TentacolousListener(
+    entity = Person.class,
+    action = ActionListener.UPDATE,
+    order = 20
+)
+public void registerAudit(Person person) {
+}
+```
+
+If a listener fails, dispatch stops and the event follows the normal retry flow. Listener side effects should therefore be idempotent.
+
+## Migrating from 0.1.7
+
+Version `0.1.8` is backward compatible with existing listener annotations. You do not need to replace `@UponInserting`, `@UponUpdating`, or `@UponDeleting`, and there are no new database infrastructure requirements.
+
+- Use `@TentacolousListener` only when you prefer one generic annotation selected with `action`.
+- Add `filter = YourFilter.class` only when you need programmatic filtering.
+- Custom filters must be Spring beans and must extend `TentacolousFilter` with a compatible entity type.
+- If a custom filter is declared together with `field`, `valueType`, or `value`, the custom filter has priority and Tentacolous logs a warning.
+- Declarative filters must define `field`, `valueType`, and `value` together.
+- A method may declare one listener annotation per operation. For example, `@UponInserting` and `@UponUpdating` may share a method, but `@UponUpdating` and `@TentacolousListener(action = ActionListener.UPDATE)` may not.
+
 ## Installation
 
 Add the dependency to your `pom.xml`:
@@ -117,7 +234,7 @@ Add the dependency to your `pom.xml`:
 <dependency>
     <groupId>io.github.aimtone</groupId>
     <artifactId>tentacolous</artifactId>
-    <version>0.1.7</version>
+    <version>0.1.8</version>
 </dependency>
 ```
 
@@ -141,7 +258,7 @@ Tentacolous will automatically create and manage the required database infrastru
 
 - Send emails when new users are created.
 - Generate real-time notifications.
-- Publish Kafka events after database updates.
+- Run application workflows after database updates.
 - Build automatic audit logs.
 - Synchronize data across multiple applications.
 - Trigger business workflows without modifying existing code.
@@ -165,7 +282,7 @@ That means your listeners are executed even when the data is modified by:
   https://aimtone.github.io/tentacolous/
 
 - **Documentation**  
-  https://aimtone.github.io/tentacolous/en/documentation/
+  https://aimtone.github.io/tentacolous/en/documentation/0.1.8/
 
 - **GitHub Repository**  
   https://github.com/aimtone/tentacolous

@@ -11,8 +11,10 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-public @interface UponDeleting {
+public @interface TentacolousListener {
     Class<?> entity();
+
+    ActionListener action();
 
     /**
      * Optional event entity name. Defaults to the entity class simple name.

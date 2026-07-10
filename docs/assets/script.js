@@ -14,14 +14,17 @@ const ensureDocumentationVersionSelector = () => {
     return;
   }
 
-  const currentVersion = window.location.pathname.includes("/0.1.6/") ? "0.1.6" : "0.1.7";
-  const isVersionedPath = /\/documentation\/0\.1\.[67]\//.test(window.location.pathname);
+  const currentVersion = window.location.pathname.includes("/0.1.6/")
+    ? "0.1.6"
+    : (window.location.pathname.includes("/0.1.7/") ? "0.1.7" : "0.1.8");
+  const isVersionedPath = /\/documentation\/0\.1\.[678]\//.test(window.location.pathname);
   const prefix = isVersionedPath ? "../" : "";
   const versionSwitch = document.createElement("div");
   versionSwitch.className = "nav-version";
   versionSwitch.innerHTML = `
     <span>Version</span>
     <select aria-label="Documentation version" data-version-selector>
+      <option value="${prefix}0.1.8/index.html"${currentVersion === "0.1.8" ? " selected" : ""}>0.1.8</option>
       <option value="${prefix}0.1.7/index.html"${currentVersion === "0.1.7" ? " selected" : ""}>0.1.7</option>
       <option value="${prefix}0.1.6/index.html"${currentVersion === "0.1.6" ? " selected" : ""}>0.1.6</option>
     </select>`;

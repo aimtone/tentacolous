@@ -140,11 +140,11 @@ public void onPersonInserted(Person person) {
                 <pre><code>&lt;dependency&gt;
   &lt;groupId&gt;io.github.aimtone&lt;/groupId&gt;
   &lt;artifactId&gt;tentacolous&lt;/artifactId&gt;
-  &lt;version&gt;0.1.7&lt;/version&gt;
+  &lt;version&gt;0.1.8&lt;/version&gt;
 &lt;/dependency&gt;</code></pre>
               </div>
               <div class="tab-panel" id="es-gradle-dependency" role="tabpanel" hidden>
-                <pre><code>implementation 'io.github.aimtone:tentacolous:0.1.7'</code></pre>
+                <pre><code>implementation 'io.github.aimtone:tentacolous:0.1.8'</code></pre>
               </div>
             </div>
             <div class="code-block reveal">
@@ -176,11 +176,12 @@ tentacolous.max-attempts=3</code></pre>
             <div class="code-block reveal">
               <div class="code-title"><span>3. Usa las anotaciones</span><span>Java</span></div>
               <div class="code-tabs" role="tablist" aria-label="Anotaciones por operacion">
-                <button class="code-tab active" type="button" role="tab" aria-selected="true" aria-controls="es-insert-annotation" data-tab-target="es-insert-annotation">Insertar</button>
+                <button class="code-tab active" type="button" role="tab" aria-selected="true" aria-controls="es-generic-annotation" data-tab-target="es-generic-annotation">Generica</button>
+                <button class="code-tab" type="button" role="tab" aria-selected="false" aria-controls="es-insert-annotation" data-tab-target="es-insert-annotation">Insertar</button>
                 <button class="code-tab" type="button" role="tab" aria-selected="false" aria-controls="es-update-annotation" data-tab-target="es-update-annotation">Actualizar</button>
                 <button class="code-tab" type="button" role="tab" aria-selected="false" aria-controls="es-delete-annotation" data-tab-target="es-delete-annotation">Eliminar</button>
               </div>
-              <div class="tab-panel active" id="es-insert-annotation" role="tabpanel">
+              <div class="tab-panel" id="es-insert-annotation" role="tabpanel" hidden>
                 <pre><code>@UponInserting(entity = Person.class)
 public void onPersonInserted(Person person) {
     notify(person.getEmail());
@@ -217,6 +218,15 @@ public void onPersonDeleted(Person person) {
 @UponDeleting(entity = Person.class)
 public void onPersonDeleted(Person person, List&lt;Person&gt; history) {
     removeFromIndex(person.getId());
+}</code></pre>
+              </div>
+              <div class="tab-panel active" id="es-generic-annotation" role="tabpanel">
+                <pre><code>@TentacolousListener(
+    entity = Person.class,
+    action = ActionListener.UPDATE
+)
+public void onPersonUpdated(Person newPerson, Person oldPerson) {
+    syncProfile(newPerson);
 }</code></pre>
               </div>
             </div>
@@ -329,7 +339,7 @@ public void onPersonDeleted(Person person, List&lt;Person&gt; history) {
             Detecta cambios reales, ejecuta tu logica de negocio y conserva visibilidad sobre cada evento procesado.
           </p>
           <div class="ending-actions">
-            <a class="button primary" href="#start">Empezar con 0.1.7</a>
+            <a class="button primary" href="#start">Empezar con 0.1.8</a>
             <a class="button" href="documentation/index.html">Leer documentacion</a>
             <a class="button" href="https://github.com/aimtone/tentacolous">Ver en GitHub</a>
           </div>

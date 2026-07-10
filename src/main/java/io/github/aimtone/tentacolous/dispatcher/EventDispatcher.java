@@ -5,8 +5,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.aimtone.tentacolous.config.DbListenerProperties;
 import io.github.aimtone.tentacolous.model.DbChangeEvent;
 import io.github.aimtone.tentacolous.model.DbOperation;
+import io.github.aimtone.tentacolous.filter.TentacolousFilter;
+import io.github.aimtone.tentacolous.filter.TentacolousFilterContext;
 import io.github.aimtone.tentacolous.registry.ListenerDefinition;
 import io.github.aimtone.tentacolous.registry.ListenerRegistry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.lang.reflect.Array;
@@ -14,11 +18,18 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Objects;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 public class EventDispatcher {
 
+    private static final Logger log = LoggerFactory.getLogger(EventDispatcher.class);
     private static final Pattern SAFE_TABLE_NAME = Pattern.compile("[a-zA-Z_][a-zA-Z0-9_\\.]*");
+
+    private record ResolvedEntities(Object entity, Object oldEntity) {
+    }
 
     private final ListenerRegistry listenerRegistry;
     private final ObjectMapper objectMapper;
@@ -63,12 +74,30 @@ public class EventDispatcher {
         JsonNode payload = null;
 
         for (ListenerDefinition listener : listeners) {
+            if (listener.hasCustomFilter()) {
+                ResolvedEntities entities = readEntities(listener, event, true);
+                if (matchesCustomFilter(listener, event, entities)) {
+                    invokeListener(listener, event, entities);
+                } else {
+                    log.debug(
+                            "Custom filter {} rejected {} event {} for entity {} and listener {}.{}",
+                            listener.getCustomFilter().getClass().getName(),
+                            listener.getOperation(),
+                            event.getId(),
+                            listener.getEntityName(),
+                            listener.getBean().getClass().getName(),
+                            listener.getMethod().getName()
+                    );
+                }
+                continue;
+            }
+
             if (listener.getFilter().isEnabled() && payload == null) {
                 payload = readPayload(event);
             }
 
             if (!listener.getFilter().isEnabled() || listener.getFilter().matches(payload)) {
-                invokeListener(listener, event);
+                invokeListener(listener, event, null);
             }
         }
     }
@@ -81,22 +110,19 @@ public class EventDispatcher {
         }
     }
 
-    private void invokeListener(ListenerDefinition listener, DbChangeEvent event) {
+    private void invokeListener(
+            ListenerDefinition listener,
+            DbChangeEvent event,
+            ResolvedEntities resolvedEntities
+    ) {
         try {
-            Object entity = objectMapper.readValue(
-                    event.getPayload(),
-                    listener.getEntityClass()
-            );
-            Object oldEntity = null;
             Method method = listener.getMethod();
             int parameterCount = method.getParameterCount();
-
-            if (listener.getOperation() == DbOperation.UPDATE && parameterCount >= 2 && event.getOldPayload() != null) {
-                oldEntity = objectMapper.readValue(
-                        event.getOldPayload(),
-                        listener.getEntityClass()
-                );
-            }
+            ResolvedEntities entities = resolvedEntities != null
+                    ? resolvedEntities
+                    : readEntities(listener, event, parameterCount >= 2);
+            Object entity = entities.entity();
+            Object oldEntity = entities.oldEntity();
 
             if (listener.getOperation() == DbOperation.UPDATE && parameterCount == 3) {
                 Object history = readHistory(event, listener, method.getParameterTypes()[2]);
@@ -111,7 +137,98 @@ public class EventDispatcher {
             }
 
         } catch (Exception e) {
-            throw new RuntimeException("Error executing listener method", e);
+            throw new RuntimeException(
+                    "Error executing " + listener.getOperation()
+                            + " listener " + listener.getBean().getClass().getName()
+                            + "." + listener.getMethod().getName()
+                            + " for entity " + listener.getEntityName()
+                            + " and event " + event.getId(),
+                    e
+            );
+        }
+    }
+
+    private ResolvedEntities readEntities(
+            ListenerDefinition listener,
+            DbChangeEvent event,
+            boolean includeOldEntity
+    ) {
+        try {
+            Object entity = objectMapper.readValue(event.getPayload(), listener.getEntityClass());
+            Object oldEntity = null;
+
+            if (includeOldEntity && listener.getOperation() == DbOperation.UPDATE && event.getOldPayload() != null) {
+                oldEntity = objectMapper.readValue(event.getOldPayload(), listener.getEntityClass());
+            }
+
+            return new ResolvedEntities(entity, oldEntity);
+        } catch (Exception e) {
+            throw new RuntimeException(
+                    "Error reading payload for " + listener.getOperation()
+                            + " listener " + listener.getMethod().getName()
+                            + " and entity " + listener.getEntityName(),
+                    e
+            );
+        }
+    }
+
+    private boolean matchesCustomFilter(
+            ListenerDefinition listener,
+            DbChangeEvent event,
+            ResolvedEntities entities
+    ) {
+        try {
+            return accept(listener.getCustomFilter(), entities, listener.getOperation(), event);
+        } catch (Exception e) {
+            throw new RuntimeException(
+                    "Error executing filter " + listener.getCustomFilter().getClass().getName()
+                            + " for " + listener.getOperation()
+                            + " listener " + listener.getBean().getClass().getName()
+                            + "." + listener.getMethod().getName()
+                            + " and entity " + listener.getEntityName()
+                            + " on event " + event.getId(),
+                    e
+            );
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> boolean accept(
+            TentacolousFilter<?> filter,
+            ResolvedEntities entities,
+            DbOperation operation,
+            DbChangeEvent event
+    ) {
+        TentacolousFilter<T> typedFilter = (TentacolousFilter<T>) filter;
+        return typedFilter.accept(new TentacolousFilterContext<>(
+                (T) entities.entity(),
+                (T) entities.oldEntity(),
+                operation,
+                event.getId(),
+                event.getEntityName(),
+                event.getRecordKey(),
+                changedFields(event, operation)
+        ));
+    }
+
+    private Set<String> changedFields(DbChangeEvent event, DbOperation operation) {
+        if (operation != DbOperation.UPDATE || event.getOldPayload() == null) {
+            return Collections.emptySet();
+        }
+
+        try {
+            JsonNode currentPayload = objectMapper.readTree(event.getPayload());
+            JsonNode oldPayload = objectMapper.readTree(event.getOldPayload());
+            Set<String> fieldNames = new LinkedHashSet<>();
+            currentPayload.fieldNames().forEachRemaining(fieldNames::add);
+            oldPayload.fieldNames().forEachRemaining(fieldNames::add);
+            fieldNames.removeIf(fieldName -> Objects.equals(
+                    currentPayload.get(fieldName),
+                    oldPayload.get(fieldName)
+            ));
+            return fieldNames;
+        } catch (Exception e) {
+            throw new RuntimeException("Error comparing current and previous event payloads", e);
         }
     }
 

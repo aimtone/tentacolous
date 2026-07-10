@@ -3,8 +3,12 @@ package io.github.aimtone.tentacolous.scanner;
 import io.github.aimtone.tentacolous.annotations.UponDeleting;
 import io.github.aimtone.tentacolous.annotations.UponInserting;
 import io.github.aimtone.tentacolous.annotations.UponUpdating;
+import io.github.aimtone.tentacolous.annotations.ActionListener;
+import io.github.aimtone.tentacolous.annotations.TentacolousListener;
 import io.github.aimtone.tentacolous.annotations.ValueType;
 import io.github.aimtone.tentacolous.model.DbOperation;
+import io.github.aimtone.tentacolous.filter.TentacolousFilter;
+import io.github.aimtone.tentacolous.filter.TentacolousFilterContext;
 import io.github.aimtone.tentacolous.registry.ListenerDefinition;
 import io.github.aimtone.tentacolous.registry.ListenerRegistry;
 import org.junit.jupiter.api.Test;
@@ -35,6 +39,62 @@ class DbListenerMethodScannerTest {
         assertThat(updateListener.getFilter().getFieldName()).isEqualTo("status");
         assertThat(updateListener.getFilter().getValueType()).isEqualTo(ValueType.STRING);
         assertThat(updateListener.getFilter().getStringValue()).isEqualTo("APROBADO");
+    }
+
+    @Test
+    void registersGenericListenersForEveryAction() {
+        ListenerRegistry registry = new ListenerRegistry();
+        DbListenerMethodScanner scanner = new DbListenerMethodScanner(registry);
+
+        scanner.postProcessAfterInitialization(new GenericListeners(), "genericListeners");
+
+        assertThat(registry.getListeners(DbOperation.INSERT, "User")).hasSize(1);
+        assertThat(registry.getListeners(DbOperation.UPDATE, "User")).hasSize(1);
+        assertThat(registry.getListeners(DbOperation.DELETE, "User")).hasSize(1);
+        assertThat(registry.getListeners(DbOperation.UPDATE, "User").get(0).getFilter().getFieldName())
+                .isEqualTo("status");
+    }
+
+    @Test
+    void appliesActionSpecificParameterRulesToGenericListeners() {
+        ListenerRegistry registry = new ListenerRegistry();
+        DbListenerMethodScanner scanner = new DbListenerMethodScanner(registry);
+
+        assertThatThrownBy(() -> scanner.postProcessAfterInitialization(new InvalidGenericInsert(), "invalid"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("exactly one parameter");
+    }
+
+    @Test
+    void rejectsCustomFilterWithIncompatibleEntityType() {
+        ListenerRegistry registry = new ListenerRegistry();
+        DbListenerMethodScanner scanner = new DbListenerMethodScanner(registry);
+
+        assertThatThrownBy(() -> scanner.postProcessAfterInitialization(new IncompatibleFilterListener(), "invalid"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("expects entity")
+                .hasMessageContaining("listener entity");
+    }
+
+    @Test
+    void rejectsMultipleListenerAnnotationsForTheSameOperation() {
+        ListenerRegistry registry = new ListenerRegistry();
+        DbListenerMethodScanner scanner = new DbListenerMethodScanner(registry);
+
+        assertThatThrownBy(() -> scanner.postProcessAfterInitialization(new DuplicateAnnotationListener(), "invalid"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("more than one Tentacolous listener annotation for UPDATE");
+    }
+
+    @Test
+    void acceptsMultipleListenerAnnotationsForDifferentOperationsOnTheSameMethod() {
+        ListenerRegistry registry = new ListenerRegistry();
+        DbListenerMethodScanner scanner = new DbListenerMethodScanner(registry);
+
+        scanner.postProcessAfterInitialization(new MultiOperationMethodListener(), "multiOperationMethodListener");
+
+        assertThat(registry.getListeners(DbOperation.INSERT, "User")).hasSize(1);
+        assertThat(registry.getListeners(DbOperation.UPDATE, "User")).hasSize(1);
     }
 
     @Test
@@ -83,7 +143,18 @@ class DbListenerMethodScannerTest {
 
         assertThatThrownBy(() -> scanner.postProcessAfterInitialization(new InvalidFilterListener(), "invalid"))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("must define field");
+                .hasMessageContaining("field, valueType and value must be defined together")
+                .hasMessageContaining("field = \"name\", valueType = ValueType.STRING, value = \"Anthony\"");
+    }
+
+    @Test
+    void rejectsValueFilterWithoutValueType() {
+        ListenerRegistry registry = new ListenerRegistry();
+        DbListenerMethodScanner scanner = new DbListenerMethodScanner(registry);
+
+        assertThatThrownBy(() -> scanner.postProcessAfterInitialization(new InvalidFilterWithoutValueTypeListener(), "invalid"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("field, valueType and value must be defined together");
     }
 
     @Test
@@ -147,6 +218,65 @@ class DbListenerMethodScannerTest {
         }
     }
 
+    static class GenericListeners {
+
+        @TentacolousListener(entity = User.class, action = ActionListener.INSERT)
+        public void onInsert(User user) {
+        }
+
+        @TentacolousListener(
+                entity = User.class,
+                action = ActionListener.UPDATE,
+                field = "status",
+                valueType = ValueType.STRING,
+                value = "APROBADO"
+        )
+        public void onUpdate(User newUser, User oldUser, List<User> history) {
+        }
+
+        @TentacolousListener(entity = User.class, action = ActionListener.DELETE)
+        public void onDelete(User user, User[] history) {
+        }
+    }
+
+    static class InvalidGenericInsert {
+
+        @TentacolousListener(entity = User.class, action = ActionListener.INSERT)
+        public void onInsert(User user, User otherUser) {
+        }
+    }
+
+    static class IncompatibleFilterListener {
+
+        @UponInserting(entity = User.class, filter = UserAccountFilter.class)
+        public void onInsert(User user) {
+        }
+    }
+
+    static class DuplicateAnnotationListener {
+
+        @UponUpdating(entity = User.class)
+        @TentacolousListener(entity = User.class, action = ActionListener.UPDATE)
+        public void onUpdate(User user) {
+        }
+    }
+
+    static class MultiOperationMethodListener {
+
+        @UponInserting(entity = User.class)
+        @UponUpdating(entity = User.class)
+        public void onInsertOrUpdate(User user) {
+        }
+    }
+
+    static class UserAccountFilter extends TentacolousFilter<UserAccount> {
+
+        @Override
+        public boolean accept(TentacolousFilterContext<UserAccount> context) {
+            return true;
+        }
+    }
+
     static class SimpleNameListener {
 
         @UponInserting(entity = User.class)
@@ -165,6 +295,13 @@ class DbListenerMethodScannerTest {
 
         @UponInserting(entity = User.class, valueType = ValueType.BOOLEAN, value = "true")
         public void onInserting(User user) {
+        }
+    }
+
+    static class InvalidFilterWithoutValueTypeListener {
+
+        @UponUpdating(entity = User.class, field = "name", value = "Anthony")
+        public void onUpdating(User user) {
         }
     }
 

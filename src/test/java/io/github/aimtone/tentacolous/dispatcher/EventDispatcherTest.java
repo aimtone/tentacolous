@@ -5,15 +5,23 @@ import io.github.aimtone.tentacolous.annotations.UponDeleting;
 import io.github.aimtone.tentacolous.annotations.UponInserting;
 import io.github.aimtone.tentacolous.annotations.UponUpdating;
 import io.github.aimtone.tentacolous.annotations.ValueType;
+import io.github.aimtone.tentacolous.annotations.ActionListener;
+import io.github.aimtone.tentacolous.annotations.TentacolousListener;
 import io.github.aimtone.tentacolous.config.DbListenerProperties;
+import io.github.aimtone.tentacolous.filter.TentacolousFilter;
+import io.github.aimtone.tentacolous.filter.TentacolousFilterContext;
 import io.github.aimtone.tentacolous.model.DbChangeEvent;
+import io.github.aimtone.tentacolous.model.DbOperation;
 import io.github.aimtone.tentacolous.registry.ListenerRegistry;
 import io.github.aimtone.tentacolous.scanner.DbListenerMethodScanner;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.context.support.StaticApplicationContext;
 
 import java.util.List;
+import java.util.ArrayList;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -187,6 +195,53 @@ class EventDispatcherTest {
         assertThat(bean.booleanViaValueCount).isEqualTo(1);
     }
 
+    @Test
+    void supportsCustomSpringFiltersForAllOperationsAndOverridesDeclarativeFilter() {
+        ListenerRegistry registry = new ListenerRegistry();
+        CustomFilterBean bean = new CustomFilterBean();
+        CustomUserFilter filter = new CustomUserFilter();
+        StaticApplicationContext context = new StaticApplicationContext();
+        context.getBeanFactory().registerSingleton("customUserFilter", filter);
+
+        DbListenerMethodScanner scanner = new DbListenerMethodScanner(registry);
+        scanner.setApplicationContext(context);
+        scanner.postProcessAfterInitialization(bean, "customFilterBean");
+
+        EventDispatcher dispatcher = new EventDispatcher(registry, objectMapper);
+        dispatcher.dispatch(event("INSERT", "{\"id\":1,\"status\":\"A\",\"active\":true,\"level\":1}"));
+
+        DbChangeEvent update = event("UPDATE", "{\"id\":1,\"status\":\"B\",\"active\":true,\"level\":2}");
+        update.setOldPayload("{\"id\":1,\"status\":\"A\",\"active\":true,\"level\":1}");
+        update.setRecordKey("1");
+        dispatcher.dispatch(update);
+
+        dispatcher.dispatch(event("DELETE", "{\"id\":1,\"status\":\"B\",\"active\":false,\"level\":2}"));
+
+        assertThat(bean.insertCount).isEqualTo(1);
+        assertThat(bean.updateCount).isEqualTo(1);
+        assertThat(bean.deleteCount).isEqualTo(1);
+        assertThat(filter.operations).containsExactly(DbOperation.INSERT, DbOperation.UPDATE, DbOperation.DELETE);
+        assertThat(filter.updateOldUser.level).isEqualTo(1);
+        assertThat(filter.eventId).isEqualTo(1L);
+        assertThat(filter.entityName).isEqualTo("User");
+        assertThat(filter.recordKey).isEqualTo("1");
+        assertThat(filter.changedFields).containsExactly("status", "level");
+        assertThat(filter.statusChanged).isTrue();
+        assertThat(filter.nonUpdateChangesEmpty).isTrue();
+    }
+
+    @Test
+    void dispatchesListenersByAscendingOrderAcrossAnnotationTypes() {
+        ListenerRegistry registry = new ListenerRegistry();
+        OrderedListeners bean = new OrderedListeners();
+        new DbListenerMethodScanner(registry).postProcessAfterInitialization(bean, "orderedListeners");
+
+        new EventDispatcher(registry, objectMapper)
+                .dispatch(event("INSERT", "{\"id\":1,\"status\":\"A\",\"active\":true,\"level\":1}"));
+
+        assertThat(bean.invocations).containsExactly("first", "second", "third");
+    }
+
     private DbChangeEvent event(String operation, String payload) {
         DbChangeEvent event = new DbChangeEvent();
         event.setId(1L);
@@ -249,6 +304,78 @@ class EventDispatcherTest {
         )
         public void onLevelOne(User user) {
             levelOneCount++;
+        }
+    }
+
+    static class CustomFilterBean {
+        int insertCount;
+        int updateCount;
+        int deleteCount;
+
+        @UponInserting(entity = User.class, entityName = "User", valueType = ValueType.BOOLEAN, value = "false", filter = CustomUserFilter.class)
+        public void onInsert(User user) {
+            insertCount++;
+        }
+
+        @UponUpdating(entity = User.class, entityName = "User", valueType = ValueType.BOOLEAN, value = "false", filter = CustomUserFilter.class)
+        public void onUpdate(User user) {
+            updateCount++;
+        }
+
+        @UponDeleting(entity = User.class, entityName = "User", valueType = ValueType.BOOLEAN, value = "false", filter = CustomUserFilter.class)
+        public void onDelete(User user) {
+            deleteCount++;
+        }
+    }
+
+    static class OrderedListeners {
+        final List<String> invocations = new ArrayList<>();
+
+        @UponInserting(entity = User.class, entityName = "User", order = 20)
+        public void second(User user) {
+            invocations.add("second");
+        }
+
+        @TentacolousListener(entity = User.class, entityName = "User", action = ActionListener.INSERT, order = 10)
+        public void first(User user) {
+            invocations.add("first");
+        }
+
+        @UponInserting(entity = User.class, entityName = "User", order = 30)
+        public void third(User user) {
+            invocations.add("third");
+        }
+    }
+
+    static class CustomUserFilter extends TentacolousFilter<User> {
+        final java.util.ArrayList<DbOperation> operations = new java.util.ArrayList<>();
+        User updateOldUser;
+        Long eventId;
+        String entityName;
+        String recordKey;
+        Set<String> changedFields;
+        boolean statusChanged;
+        boolean nonUpdateChangesEmpty = true;
+
+        @Override
+        public boolean accept(TentacolousFilterContext<User> context) {
+            operations.add(context.getOperation());
+            eventId = context.getEventId();
+            entityName = context.getEntityName();
+            if (context.getRecordKey() != null) {
+                recordKey = context.getRecordKey();
+            }
+            if (context.getOperation() == DbOperation.UPDATE) {
+                updateOldUser = context.getOldEntity();
+                changedFields = context.getChangedFields();
+                statusChanged = context.hasChanged("status");
+                return updateOldUser != null && context.getEntity().level > updateOldUser.level;
+            }
+            nonUpdateChangesEmpty &= context.getChangedFields().isEmpty()
+                    && !context.hasChanged("status");
+            return context.getOperation() == DbOperation.INSERT
+                    ? context.getEntity().active
+                    : !context.getEntity().active;
         }
     }
 
