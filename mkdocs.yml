@@ -15,7 +15,6 @@ theme:
   favicon: assets/favicon_32.png
   logo: assets/logoblanco.png
   features:
-    - navigation.instant
     - navigation.sections
     - navigation.expand
     - navigation.indexes
@@ -31,16 +30,57 @@ theme:
       accent: deep purple
       toggle:
         icon: material/weather-night
-        name: Cambiar a modo oscuro
+        name: Switch to dark mode
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
       primary: black
       accent: purple
       toggle:
         icon: material/weather-sunny
-        name: Cambiar a modo claro
+        name: Switch to light mode
 
 plugins:
+  - i18n:
+      docs_structure: folder
+      fallback_to_default: true
+      reconfigure_material: true
+      reconfigure_search: true
+      languages:
+        - locale: en
+          default: true
+          name: English
+          build: true
+        - locale: es
+          name: Español
+          build: true
+          site_description: Listeners de cambios de PostgreSQL para Spring Boot
+          nav:
+            - Inicio: index.md
+            - Primeros pasos:
+                - Resumen: getting-started/overview.md
+                - Requisitos: getting-started/requirements.md
+                - Instalación: getting-started/installation.md
+                - Migración desde 0.1.7: getting-started/migration.md
+            - Conceptos:
+                - Configuración: concepts/configuration.md
+                - Mapeo de entidades: concepts/entity-mapping.md
+                - Cómo funciona: concepts/how-it-works.md
+                - Seguridad: concepts/security.md
+                - Producción: concepts/production.md
+            - API:
+                - Listeners: api/listeners.md
+                - Anotaciones: api/annotations.md
+                - Filtros declarativos: api/declarative-filters.md
+                - Filtros personalizados: api/custom-filters.md
+                - Combinaciones inválidas: api/invalid-combinations.md
+            - Ejemplos:
+                - Pruebas manuales: examples/manual-testing.md
+                - Tests: examples/tests.md
+            - Archivo de versiones:
+                - Versión actual: documentation/index.md
+                - 0.1.8: documentation/0.1.8/index.md
+                - 0.1.7: documentation/0.1.7/index.md
+                - 0.1.6: documentation/0.1.6/index.md
   - search:
       lang:
         - en
@@ -93,48 +133,13 @@ nav:
   - Examples:
       - Manual testing: examples/manual-testing.md
       - Tests: examples/tests.md
-  - Español:
-      - Inicio: es/index.md
-      - Primeros pasos:
-          - Resumen: es/getting-started/overview.md
-          - Requisitos: es/getting-started/requirements.md
-          - Instalación: es/getting-started/installation.md
-          - Migración desde 0.1.7: es/getting-started/migration.md
-      - Conceptos:
-          - Configuración: es/concepts/configuration.md
-          - Mapeo de entidades: es/concepts/entity-mapping.md
-          - Cómo funciona: es/concepts/how-it-works.md
-          - Seguridad: es/concepts/security.md
-          - Producción: es/concepts/production.md
-      - API:
-          - Listeners: es/api/listeners.md
-          - Anotaciones: es/api/annotations.md
-          - Filtros declarativos: es/api/declarative-filters.md
-          - Filtros personalizados: es/api/custom-filters.md
-          - Combinaciones inválidas: es/api/invalid-combinations.md
-      - Ejemplos:
-          - Pruebas manuales: es/examples/manual-testing.md
-          - Tests: es/examples/tests.md
   - Version archive:
-      - English:
-          - Current alias: en/documentation/index.md
-          - 0.1.8: en/documentation/0.1.8/index.md
-          - 0.1.7: en/documentation/0.1.7/index.md
-          - 0.1.6: en/documentation/0.1.6/index.md
-      - Español:
-          - Alias actual: es/documentation/index.md
-          - 0.1.8: es/documentation/0.1.8/index.md
-          - 0.1.7: es/documentation/0.1.7/index.md
-          - 0.1.6: es/documentation/0.1.6/index.md
+      - Current alias: documentation/index.md
+      - 0.1.8: documentation/0.1.8/index.md
+      - 0.1.7: documentation/0.1.7/index.md
+      - 0.1.6: documentation/0.1.6/index.md
 
 extra:
-  alternate:
-    - name: English
-      link: /tentacolous/
-      lang: en
-    - name: Español
-      link: /tentacolous/es/
-      lang: es
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/aimtone/tentacolous

@@ -7,10 +7,10 @@ Run Java code when someone inserts, updates or deletes data in PostgreSQL, even 
 Stop constantly polling the database or coupling your whole application to JPA. Tentacolous detects real changes through triggers and runs annotated Java methods in a simple, fast and reliable way.
 
 [Get started](#start){ .md-button .md-button--primary }
-[Documentation](en/documentation/index.md){ .md-button }
+[Documentation](documentation/index.md){ .md-button }
 [GitHub](https://github.com/aimtone/tentacolous){ .md-button }
 
-![Tentacolous](assets/logonegro.png){ .content-logo }
+![Tentacolous](../assets/logonegro.png){ .content-logo }
 
 ```java
 @UponInserting(entity = Person.class)
@@ -149,7 +149,7 @@ public void onPersonUpdated(Person newPerson, Person oldPerson) {
 
 Open the technical guide for advanced configuration, complete examples and production recommendations.
 
-[Open documentation](en/documentation/index.md){ .md-button .md-button--primary }
+[Open documentation](documentation/index.md){ .md-button .md-button--primary }
 
 Why it exists
 
@@ -219,7 +219,7 @@ Tentacolous registers listeners, creates or validates PostgreSQL infrastructure,
 
 **Java listener**@UponInserting, @UponUpdating, @UponDeleting
 
-![Tentacolous](assets/logonegro.png){ .content-logo .content-logo--small }
+![Tentacolous](../assets/logonegro.png){ .content-logo .content-logo--small }
 Ready when your database changes
 
 ## Keep the database observable and the reaction in Java.
@@ -227,5 +227,5 @@ Ready when your database changes
 Detect real changes, run your business logic and keep visibility over every processed event.
 
 [Start with 0.1.8](#start){ .md-button .md-button--primary }
-[Read the docs](en/documentation/index.md){ .md-button }
+[Read the docs](documentation/index.md){ .md-button }
 [View on GitHub](https://github.com/aimtone/tentacolous){ .md-button }
