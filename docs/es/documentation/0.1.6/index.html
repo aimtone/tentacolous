@@ -4,53 +4,32 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Tentacolous | Documentacion</title>
-    <meta name="description" content="Documentacion tecnica de Tentacolous: instalacion, configuracion, anotaciones, filtros, testing, seguridad y produccion.">
-    <meta name="keywords" content="documentacion Tentacolous, Spring Boot PostgreSQL listener, triggers base de datos, anotaciones Java, eventos de base de datos, Maven Central">
-    <meta name="author" content="Aimtone">
-    <meta name="robots" content="index, follow">
+    <meta name="description" content="Documentacion tecnica de Tentacolous: instalacion, configuracion, anotaciones, filtros, testing, seguridad, produccion y limitaciones.">
     <meta name="theme-color" content="#061016">
     <meta property="og:title" content="Tentacolous Documentacion">
     <meta property="og:description" content="Guia completa para usar Tentacolous en proyectos Spring Boot con PostgreSQL.">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://aimtone.github.io/tentacolous/es/documentation/0.1.7/">
-    <meta property="og:image" content="https://aimtone.github.io/tentacolous/assets/logoblanco.png">
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Tentacolous Documentacion">
-    <meta name="twitter:description" content="Guia completa para usar Tentacolous en proyectos Spring Boot con PostgreSQL.">
-    <meta name="twitter:image" content="https://aimtone.github.io/tentacolous/assets/logoblanco.png">
-    <link rel="canonical" href="https://aimtone.github.io/tentacolous/es/documentation/0.1.7/">
-    <link rel="alternate" hreflang="en" href="https://aimtone.github.io/tentacolous/en/documentation/0.1.7/">
-    <link rel="alternate" hreflang="es" href="https://aimtone.github.io/tentacolous/es/documentation/0.1.7/">
-    <link rel="alternate" hreflang="x-default" href="https://aimtone.github.io/tentacolous/en/documentation/0.1.7/">
-    <link rel="icon" href="../../assets/favicon_32.png" type="image/png" sizes="32x32">
-    <script>
-      (() => {
-        if (localStorage.getItem("tentacolous-theme") === "light") {
-          document.documentElement.dataset.theme = "light";
-        }
-      })();
-    </script>
-    <link rel="stylesheet" href="../../assets/styles.css">
+    <meta property="og:image" content="../../../assets/logoblanco.png">
+    <link rel="canonical" href="https://aimtone.github.io/tentacolous/es/documentation/0.1.6/">
+    <link rel="alternate" hreflang="en" href="https://aimtone.github.io/tentacolous/en/documentation/0.1.6/">
+    <link rel="alternate" hreflang="es" href="https://aimtone.github.io/tentacolous/es/documentation/0.1.6/">
+    <link rel="icon" href="../../../assets/logoblanco.png" type="image/png">
+    <link rel="stylesheet" href="../../../assets/styles.css">
   </head>
   <body>
     <header class="site-header">
       <nav class="nav" aria-label="Principal">
-        <a class="brand" href="../index.html">
-          <img src="../../assets/logoblanco.png" alt="">
+        <a class="brand" href="../../index.html">
+          <img src="../../../assets/logoblanco.png" alt="">
           <span>Tentacolous</span>
         </a>
-        <button class="menu-toggle" type="button" aria-label="Abrir menu" aria-expanded="false" aria-controls="es-docs-menu" data-menu-toggle>
-          <span></span>
-          <span></span>
-          <span></span>
-        </button>
-        <div class="nav-links" id="es-docs-menu" data-nav-menu>
-          <a href="../index.html">Inicio</a>
+        <div class="nav-links">
+          <a href="../../index.html">Inicio</a>
           <a class="nav-external" href="https://github.com/aimtone/tentacolous">GitHub</a>
-          <div class="nav-version"><span>Version</span><select aria-label="Version de la documentacion" data-version-selector><option value="0.1.7/index.html" selected>0.1.7</option><option value="0.1.6/index.html">0.1.6</option></select></div>
+          <div class="nav-version"><span>Version</span><select aria-label="Version de la documentacion" data-version-selector><option value="../0.1.7/index.html">0.1.7</option><option value="../0.1.6/index.html" selected>0.1.6</option></select></div>
           <span class="language-switch" aria-label="Selector de idioma">
             <a class="active" href="index.html">ES</a>
-            <a href="../../en/documentation/index.html">EN</a>
+            <a href="../../../en/documentation/0.1.6/">EN</a>
           </span>
           <button class="theme-toggle" type="button" aria-label="Cambiar a tema claro" aria-pressed="false" data-theme-toggle>
             <span class="theme-icon theme-icon-sun" aria-hidden="true">
@@ -67,47 +46,37 @@
     <main>
       <section class="docs-hero">
         <div class="wrap docs-hero-inner reveal">
-          <img src="../../assets/logoblanco.png" alt="">
+          <img src="../../../assets/logoblanco.png" alt="">
           <div>
             <span class="section-kicker">Documentacion de Tentacolous</span>
             <h1><span class="gradient-text">Guia tecnica</span></h1>
             <p class="slogan">Todo lo necesario para instalar, configurar y operar Tentacolous en un proyecto Spring Boot.</p>
             <p class="hero-copy">
-              Aprende como agregar la dependencia, configurar el procesamiento de eventos y crear listeners Java que reaccionan a cambios reales en PostgreSQL mediante triggers, una tabla de eventos y un poller Spring.
+              Esta pagina expande el README con una estructura mas navegable. Mantiene el alcance real del repositorio:
+              Tentacolous usa infraestructura PostgreSQL, una tabla de eventos y un poller Spring para ejecutar metodos Java anotados.
             </p>
           </div>
         </div>
       </section>
 
-      <section class="section alt docs-page docs-page-relaxed">
+      <section class="section alt docs-page">
         <div class="wrap docs-layout">
           <aside class="docs-nav reveal" aria-label="Indice de documentacion">
-            <div class="docs-nav-group">
-              <span>Comenzar</span>
-              <a href="#overview">Resumen</a>
-              <a href="#requirements">Requisitos</a>
-              <a href="#dependency">Dependencias</a>
-            </div>
-            <div class="docs-nav-group">
-              <span>Configurar</span>
-              <a href="#config">Configuracion</a>
-              <a href="#entity">Mapeo de entidades</a>
-              <a href="#annotations">Anotaciones</a>
-              <a href="#filters">Tipos de filtros</a>
-            </div>
-            <div class="docs-nav-group">
-              <span>Usar</span>
-              <a href="#operations">Operaciones</a>
-              <a href="#invalid">Combinaciones invalidas</a>
-              <a href="#manual-testing">Pruebas manuales</a>
-              <a href="#internals">Como funciona</a>
-            </div>
-            <div class="docs-nav-group">
-              <span>Operar</span>
-              <a href="#security">Seguridad</a>
-              <a href="#production">Produccion</a>
-              <a href="#tests">Tests</a>
-            </div>
+            <a href="#overview">Resumen</a>
+            <a href="#requirements">Requisitos</a>
+            <a href="#install">Dependencia de la version 0.1.6</a>
+            <a href="#config">Configuracion</a>
+            <a href="#entity">Mapeo de entidades</a>
+            <a href="#annotations">Anotaciones</a>
+            <a href="#filters">Tipos de filtros</a>
+            <a href="#operations">Operaciones</a>
+            <a href="#invalid">Combinaciones invalidas</a>
+            <a href="#manual-testing">Pruebas manuales</a>
+            <a href="#internals">Como funciona</a>
+            <a href="#security">Seguridad</a>
+            <a href="#production">Produccion</a>
+            <a href="#tests">Tests</a>
+            <a href="#limitations">Limitaciones</a>
           </aside>
 
           <div class="doc-content">
@@ -137,15 +106,14 @@
               <p>La creacion automatica de infraestructura de base de datos esta implementada actualmente para PostgreSQL.</p>
             </article>
 
-            <article id="dependency" class="doc-card reveal">
-              <h2>Snippets de dependencias</h2>
-              <h3>Gradle</h3>
-              <pre><code>implementation 'io.github.aimtone:tentacolous:0.1.7'</code></pre>
-              <h3>Maven</h3>
+            <article id="install" class="doc-card reveal">
+              <h2>Dependencia de la version 0.1.6</h2>
+              <p>Usa estas coordenadas cuando tu aplicacion requiera Tentacolous 0.1.6.</p>
+              <pre><code>implementation 'io.github.aimtone:tentacolous:0.1.6'</code></pre>
               <pre><code>&lt;dependency&gt;
   &lt;groupId&gt;io.github.aimtone&lt;/groupId&gt;
   &lt;artifactId&gt;tentacolous&lt;/artifactId&gt;
-  &lt;version&gt;0.1.7&lt;/version&gt;
+  &lt;version&gt;0.1.6&lt;/version&gt;
 &lt;/dependency&gt;</code></pre>
             </article>
 
@@ -196,9 +164,15 @@ spring:
             <article id="entity" class="doc-card reveal">
               <h2>Entidad de ejemplo</h2>
               <p>Tentacolous usa la entidad para saber que tabla de base de datos debe escuchar.</p>
-              <pre><code>@Entity
-@Table(name = "person")
-public class Person {
+              <pre><code>import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name = "persona")
+public class Persona {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -208,16 +182,16 @@ public class Person {
     private String lastname;
     private String email;
 
-    public Person() {
+    public Persona() {
     }
 
     // getters and setters
 }</code></pre>
-              <p>Si la entidad tiene <code>@Table(name = "person")</code>, Tentacolous escucha la tabla <code>person</code>. Si no tiene <code>@Table</code>, Tentacolous infiere el nombre de tabla desde el nombre de clase.</p>
+              <p>Si la entidad tiene <code>@Table(name = "persona")</code>, Tentacolous escucha la tabla <code>persona</code>. Si no tiene <code>@Table</code>, Tentacolous infiere el nombre de tabla desde el nombre de clase.</p>
               <table class="doc-table">
                 <thead><tr><th>Entidad</th><th>Tabla inferida</th></tr></thead>
                 <tbody>
-                  <tr><td><code>Person</code></td><td><code>person</code></td></tr>
+                  <tr><td><code>Persona</code></td><td><code>persona</code></td></tr>
                   <tr><td><code>UserAccount</code></td><td><code>user_account</code></td></tr>
                   <tr><td><code>PaymentTransaction</code></td><td><code>payment_transaction</code></td></tr>
                 </tbody>
@@ -240,7 +214,7 @@ public class Person {
                 </tbody>
               </table>
               <h3>Sobre entityName</h3>
-              <p>La mayoria de las veces no necesitas <code>entityName</code>. Por defecto, <code>@UponInserting(entity = Person.class)</code> usa <code>Person</code>. Ese valor se almacena en <code>db_change_event.entity_name</code> y se usa internamente para relacionar eventos con listeners.</p>
+              <p>La mayoria de las veces no necesitas <code>entityName</code>. Por defecto, <code>@UponInserting(entity = Persona.class)</code> usa <code>Persona</code>. Ese valor se almacena en <code>db_change_event.entity_name</code> y se usa internamente para relacionar eventos con listeners.</p>
               <p>Usa <code>entityName</code> solo en casos avanzados donde necesites un nombre logico estable, por ejemplo cuando infraestructura externa ya escribe eventos con un nombre especifico.</p>
               <h3>Sobre exclude</h3>
               <p><code>exclude</code> no filtra listeners. Evita que columnas especificas se almacenen en el payload JSON del evento.</p>
@@ -282,23 +256,23 @@ value = "expected value"</code></pre>
               <h2>Operaciones</h2>
               <h3>UponInserting</h3>
               <p><code>@UponInserting</code> ejecuta un metodo cuando ocurre un <code>INSERT</code> en la tabla de la entidad.</p>
-              <pre><code>@UponInserting(entity = Person.class)
-public void onPersonInserted(Person person) {
-    System.out.println("Inserted: " + person.getEmail());
+              <pre><code>@UponInserting(entity = Persona.class)
+public void onPersonaInserted(Persona persona) {
+    System.out.println("Inserted: " + persona.getEmail());
 }</code></pre>
               <p>Casos de uso: ejecutar logica despues de crear un registro, enviar una notificacion, publicar un mensaje Kafka o crear un registro de auditoria.</p>
               <h4>Insert con nombre logico explicito</h4>
-              <pre><code>@UponInserting(entity = Person.class, entityName = "Person")
-public void onPersonInserted(Person person) {
+              <pre><code>@UponInserting(entity = Persona.class, entityName = "Persona")
+public void onPersonaInserted(Persona persona) {
 }</code></pre>
               <h4>Insert con filtro STRING</h4>
               <pre><code>@UponInserting(
-    entity = Person.class,
+    entity = Persona.class,
     field = "email",
     valueType = ValueType.STRING,
     value = "admin@example.com"
 )
-public void onAdminInserted(Person person) {
+public void onAdminInserted(Persona persona) {
 }</code></pre>
               <h4>Insert con filtro BOOLEAN</h4>
               <pre><code>@UponInserting(
@@ -337,19 +311,10 @@ public void onUserInserted(User user) {
 
               <h3>UponUpdating</h3>
               <p><code>@UponUpdating</code> ejecuta un metodo cuando ocurre un <code>UPDATE</code> en la tabla de la entidad.</p>
-              <pre><code>@UponUpdating(entity = Person.class)
-public void onPersonUpdated(Person person) {
-    System.out.println("Updated: " + person.getEmail());
+              <pre><code>@UponUpdating(entity = Persona.class)
+public void onPersonaUpdated(Persona persona) {
+    System.out.println("Updated: " + persona.getEmail());
 }</code></pre>
-              <p>Tambien puedes recibir los valores anteriores del registro agregando un segundo parametro del mismo tipo de entidad.</p>
-              <pre><code>@UponUpdating(entity = Person.class)
-public void onPersonUpdated(Person newPerson, Person oldPerson) {
-}</code></pre>
-              <p>Si agregas un tercer parametro, Tentacolous entrega los snapshots anteriores de ese mismo registro, ordenados desde el mas antiguo al mas reciente.</p>
-              <pre><code>@UponUpdating(entity = Person.class)
-public void onPersonUpdated(Person newPerson, Person oldPerson, List&lt;Person&gt; history) {
-}</code></pre>
-              <p>El parametro de historico puede ser <code>List&lt;Person&gt;</code> o <code>Person[]</code>. Tentacolous relaciona el registro por su columna <code>@Id</code> cuando existe, o por <code>id</code> en caso contrario.</p>
               <p>Casos de uso: recalcular datos derivados, invalidar cache, notificar a otros sistemas o sincronizar con un servicio externo.</p>
               <h4>Update con filtro STRING</h4>
               <pre><code>@UponUpdating(
@@ -385,28 +350,22 @@ public void onInvoicePaidAt(Invoice invoice) {
 )
 public void onUserUpdated(User user) {
 }</code></pre>
-              <p>Las columnas excluidas se eliminan tanto del payload nuevo como del payload anterior.</p>
 
               <h3>UponDeleting</h3>
               <p><code>@UponDeleting</code> ejecuta un metodo cuando ocurre un <code>DELETE</code> en la tabla de la entidad. Para un delete, el payload contiene los valores previos del registro porque la fila ya no existe despues de eliminarse.</p>
-              <pre><code>@UponDeleting(entity = Person.class)
-public void onPersonDeleted(Person person) {
-    System.out.println("Deleted: " + person.getEmail());
+              <pre><code>@UponDeleting(entity = Persona.class)
+public void onPersonaDeleted(Persona persona) {
+    System.out.println("Deleted: " + persona.getEmail());
 }</code></pre>
-              <p>Tambien puedes recibir los snapshots anteriores de ese mismo registro agregando un segundo parametro.</p>
-              <pre><code>@UponDeleting(entity = Person.class)
-public void onPersonDeleted(Person person, List&lt;Person&gt; history) {
-}</code></pre>
-              <p>El parametro de historico puede ser <code>List&lt;Person&gt;</code> o <code>Person[]</code>.</p>
               <p>Casos de uso: limpiar recursos externos, eliminar datos relacionados en otra base de datos, notificar eliminaciones o registrar auditoria de borrado.</p>
               <h4>Delete con filtro STRING</h4>
               <pre><code>@UponDeleting(
-    entity = Person.class,
+    entity = Persona.class,
     field = "email",
     valueType = ValueType.STRING,
     value = "admin@example.com"
 )
-public void onAdminDeleted(Person person) {
+public void onAdminDeleted(Persona persona) {
 }</code></pre>
               <h4>Delete con filtro UUID</h4>
               <pre><code>@UponDeleting(
@@ -431,27 +390,27 @@ public void onUserDeleted(User user) {
               <p>Estas combinaciones deberian fallar cuando inicia la aplicacion.</p>
               <h3>Falta field</h3>
               <pre><code>@UponInserting(
-    entity = Person.class,
+    entity = Persona.class,
     valueType = ValueType.BOOLEAN,
     value = "true"
 )
-public void invalid(Person person) {
+public void invalid(Persona persona) {
 }</code></pre>
               <h3>Falta value</h3>
               <pre><code>@UponInserting(
-    entity = Person.class,
+    entity = Persona.class,
     field = "active",
     valueType = ValueType.BOOLEAN
 )
-public void invalid(Person person) {
+public void invalid(Persona persona) {
 }</code></pre>
               <h3>Metodo con mas de un parametro</h3>
-              <pre><code>@UponInserting(entity = Person.class)
-public void invalid(Person person, String other) {
+              <pre><code>@UponInserting(entity = Persona.class)
+public void invalid(Persona persona, String other) {
 }</code></pre>
               <h3>Parametro incompatible</h3>
-              <pre><code>@UponInserting(entity = Person.class)
-public void invalid(String person) {
+              <pre><code>@UponInserting(entity = Persona.class)
+public void invalid(String persona) {
 }</code></pre>
             </article>
 
@@ -459,25 +418,25 @@ public void invalid(String person) {
               <h2>Pruebas manuales</h2>
               <p>Asume esta entidad y este listener:</p>
               <pre><code>@Entity
-@Table(name = "person")
-public class Person {
+@Table(name = "persona")
+public class Persona {
     // ...
 }
 
-@UponInserting(entity = Person.class)
-public void inserted(Person person) {
-    System.out.println("Person inserted: " + person.getEmail());
+@UponInserting(entity = Persona.class)
+public void inserted(Persona persona) {
+    System.out.println("Persona inserted: " + persona.getEmail());
 }</code></pre>
               <p>Inicia tu aplicacion Spring Boot. Tentacolous deberia imprimir logs similares a:</p>
               <pre><code>Tentacolous registered 1 listener method(s)
 Initializing Tentacolous schema using event table 'db_change_event'
-Creating Tentacolous INSERT trigger for table 'person' and entity 'Person'
+Creating Tentacolous INSERT trigger for table 'persona' and entity 'Persona'
 Starting Tentacolous poller</code></pre>
               <p>Luego ejecuta este SQL en PostgreSQL:</p>
-              <pre><code>INSERT INTO public.person (email, lastname, "name")
+              <pre><code>INSERT INTO public.persona (email, lastname, "name")
 VALUES ('test@example.com', 'Perez', 'Ana');</code></pre>
               <p>Deberias ver esto en la consola de tu aplicacion:</p>
-              <pre><code>Person inserted: test@example.com</code></pre>
+              <pre><code>Persona inserted: test@example.com</code></pre>
               <p>Inspecciona eventos y triggers con:</p>
               <pre><code>select *
 from db_change_event
@@ -485,7 +444,7 @@ order by id desc;
 
 select trigger_name, event_object_schema, event_object_table
 from information_schema.triggers
-where event_object_table = 'person';</code></pre>
+where event_object_table = 'persona';</code></pre>
             </article>
 
             <article id="internals" class="doc-card reveal">
@@ -497,9 +456,7 @@ where event_object_table = 'person';</code></pre>
                 <li>Una funcion <code>db_change_event_notify_change()</code>.</li>
                 <li>Un trigger por tabla y operacion.</li>
               </ul>
-              <p>El trigger almacena <code>entity_name</code>, <code>operation</code>, <code>payload</code>, <code>old_payload</code>, <code>record_key</code>, <code>status</code>, <code>attempts</code>, <code>last_error</code> y timestamps de procesamiento.</p>
-              <p><code>payload</code> contiene la fila actual para inserts y updates, y la fila eliminada para deletes. <code>old_payload</code> contiene la fila anterior solo para updates. <code>record_key</code> identifica el registro afectado, usando la columna <code>@Id</code> de la entidad cuando existe o <code>id</code> en caso contrario.</p>
-              <p>Cuando un listener pide historico, Tentacolous consulta los payloads anteriores de <code>INSERT</code> y <code>UPDATE</code> para el mismo <code>entity_name</code> y <code>record_key</code>, ordenados desde el mas antiguo al mas reciente.</p>
+              <p>El trigger almacena <code>entity_name</code>, <code>operation</code>, <code>payload</code>, <code>status</code>, <code>attempts</code>, <code>last_error</code> y timestamps de procesamiento.</p>
               <p>El poller busca eventos <code>PENDING</code>, los marca como <code>PROCESSING</code>, ejecuta el listener y finalmente los marca como <code>PROCESSED</code>. Si ocurre un error, Tentacolous guarda <code>last_error</code> y reintenta hasta alcanzar <code>tentacolous.max-attempts</code>.</p>
             </article>
 
@@ -519,7 +476,6 @@ where event_object_table = 'person';</code></pre>
               <ul class="clean-list">
                 <li>Crea la tabla, funcion y triggers usando migraciones controladas.</li>
                 <li>Usa <code>tentacolous.schema-management=validate</code> para verificar la infraestructura.</li>
-                <li>Si administras el schema manualmente, incluye las columnas <code>old_payload</code> y <code>record_key</code>, y pasa el campo de clave del registro a la funcion del trigger.</li>
                 <li>Monitorea eventos <code>FAILED</code>.</li>
                 <li>Limpia o archiva <code>db_change_event</code>.</li>
                 <li>Evita logica lenta dentro de los listeners.</li>
@@ -531,10 +487,20 @@ where event_object_table = 'person';</code></pre>
               <h2>Ejecutar tests de Tentacolous</h2>
               <p>Desde la carpeta de la libreria:</p>
               <pre><code>mvn test</code></pre>
+              <p>Para limpiar, compilar, testear e instalar:</p>
+              <pre><code>mvn clean install</code></pre>
               <p>Resultado esperado:</p>
               <pre><code>BUILD SUCCESS</code></pre>
             </article>
 
+            <article id="limitations" class="doc-card reveal">
+              <h2>Limitaciones actuales</h2>
+              <ul class="clean-list">
+                <li>La creacion automatica de infraestructura actualmente esta implementada solo para PostgreSQL.</li>
+                <li>Tentacolous no usa CDC nativo como Debezium o logical replication.</li>
+                <li>El polling es simple. Para sistemas de volumen muy alto, CDC nativo o una cola especializada puede ser una mejor opcion.</li>
+              </ul>
+            </article>
           </div>
         </div>
       </section>
@@ -542,14 +508,14 @@ where event_object_table = 'person';</code></pre>
 
     <footer class="site-footer">
       <div class="footer-inner">
-        <a class="brand" href="../index.html">
-          <img src="../../assets/logoblanco.png" alt="">
+        <a class="brand" href="../../index.html">
+          <img src="../../../assets/logoblanco.png" alt="">
           <span>Tentacolous</span>
         </a>
-        <span><a href="../index.html">Inicio</a> - <a href="https://github.com/aimtone/tentacolous">Repositorio GitHub</a></span>
+        <span><a href="../../index.html">Inicio</a> - <a href="https://github.com/aimtone/tentacolous">Repositorio GitHub</a></span>
       </div>
     </footer>
 
-    <script src="../../assets/script.js" defer></script>
+    <script src="../../../assets/script.js" defer></script>
   </body>
 </html>

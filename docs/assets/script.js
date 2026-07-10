@@ -3,6 +3,33 @@ const themeMeta = document.querySelector('meta[name="theme-color"]');
 const themeToggles = document.querySelectorAll("[data-theme-toggle]");
 const menuToggles = document.querySelectorAll("[data-menu-toggle]");
 
+const ensureDocumentationVersionSelector = () => {
+  if (!window.location.pathname.includes("/documentation/") || document.querySelector("[data-version-selector]")) {
+    return;
+  }
+
+  const navLinks = document.querySelector(".site-header .nav-links");
+  const languageSwitch = navLinks?.querySelector(".language-switch");
+  if (!navLinks || !languageSwitch) {
+    return;
+  }
+
+  const currentVersion = window.location.pathname.includes("/0.1.6/") ? "0.1.6" : "0.1.7";
+  const isVersionedPath = /\/documentation\/0\.1\.[67]\//.test(window.location.pathname);
+  const prefix = isVersionedPath ? "../" : "";
+  const versionSwitch = document.createElement("div");
+  versionSwitch.className = "nav-version";
+  versionSwitch.innerHTML = `
+    <span>Version</span>
+    <select aria-label="Documentation version" data-version-selector>
+      <option value="${prefix}0.1.7/index.html"${currentVersion === "0.1.7" ? " selected" : ""}>0.1.7</option>
+      <option value="${prefix}0.1.6/index.html"${currentVersion === "0.1.6" ? " selected" : ""}>0.1.6</option>
+    </select>`;
+  navLinks.insertBefore(versionSwitch, languageSwitch);
+};
+
+ensureDocumentationVersionSelector();
+
 const getCurrentTheme = () => document.documentElement.dataset.theme === "light" ? "light" : "dark";
 
 const applyTheme = (theme) => {
@@ -156,4 +183,11 @@ document.querySelectorAll("pre > code").forEach((code) => {
   const language = detectLanguage(code);
   code.classList.add(`language-${language}`);
   if (language !== "plain") code.innerHTML = highlightCode(code.textContent, language);
+});
+
+document.addEventListener("change", (event) => {
+  const selector = event.target.closest?.("[data-version-selector]");
+  if (selector) {
+    window.location.href = selector.value;
+  }
 });
