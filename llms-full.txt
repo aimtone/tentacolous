@@ -1,0 +1,1971 @@
+# Tentacolous — complete documentation
+
+<!-- Source: api/annotations.md -->
+
+## Annotation parameters {#annotations}
+
+The operation-specific annotations and `@TentacolousListener(...)` share the same listener configuration.
+
+| Parameter | Required | Description |
+| --- | --- | --- |
+| `entity` | Yes | Entity class that represents the table and receives the deserialized payload. |
+| `action` | Only for `@TentacolousListener` | `ActionListener.INSERT`, `ActionListener.UPDATE`, or `ActionListener.DELETE`. |
+| `entityName` | No | Logical event name. If omitted, Tentacolous uses the class simple name. |
+| `field` | Only with filters | Payload field to compare. |
+| `valueType` | Only with filters | Type used to interpret `value`. |
+| `value` | Only with filters | Expected value, always written as text. |
+| `filter` | No | Spring bean extending `TentacolousFilter<T>`. It replaces the declarative filter. |
+| `order` | No | Listener execution order. Lower values run first; the default is `0`. |
+| `exclude` | No | Columns that should not be stored in the event payload. |
+
+### Listener ordering
+
+Use `order` when several listeners handle the same entity and operation. Ordering works across specific and generic annotations.
+
+```java
+@UponUpdating(entity = Person.class, order = 10)
+public void updateProfile(Person person) {
+}
+
+@TentacolousListener(
+    entity = Person.class,
+    action = ActionListener.UPDATE,
+    order = 20
+)
+public void registerAudit(Person person) {
+}
+```
+
+If a listener fails, subsequent listeners are not invoked and the event follows the normal retry flow. Listener side effects should be idempotent.
+
+### About entityName
+
+Most of the time, you do not need `entityName`. By default, `@UponInserting(entity = Person.class)` uses `Person`. The value is stored in `db_change_event.entity_name` and is used internally to match events with listeners.
+
+Use `entityName` only for advanced cases where you need a stable logical name, for example when external infrastructure already writes events with a specific name.
+
+### About exclude
+
+`exclude` does not filter listeners. It prevents specific columns from being stored in the event JSON payload.
+
+```java
+@UponInserting(
+    entity = User.class,
+    exclude = {"password", "token", "secret_key"}
+)
+public void onUserInserted(User user) {
+}
+```
+
+This matters because the event table may contain business data. You usually do not want secrets stored there.
+
+<!-- Source: api/custom-filters.md -->
+
+## Custom filters {#custom-filters}
+
+Programmatic filtering is the main addition in `0.1.8`. Define the rule once in a reusable class and reference it from any listener annotation. The filter class must be a Spring bean.
+
+```java
+@Component
+public class ActivePersonFilter extends TentacolousFilter<Person> {
+
+    @Override
+    public boolean accept(TentacolousFilterContext<Person> context) {
+        Person person = context.getEntity();
+        Person oldPerson = context.getOldEntity();
+
+        return person.isActive()
+                && (oldPerson == null
+                    || !Objects.equals(person.getStatus(), oldPerson.getStatus()));
+    }
+}
+```
+
+```java
+@TentacolousListener(
+    entity = Person.class,
+    action = ActionListener.UPDATE,
+    filter = ActivePersonFilter.class
+)
+public void onActivePersonUpdated(Person newPerson, Person oldPerson) {
+}
+```
+
+### Available on every annotation
+
+`@TentacolousListener` is optional. Existing annotations remain available and now accept the same custom filter:
+
+```java
+@UponInserting(entity = Person.class, filter = ActivePersonFilter.class)
+public void onPersonInserted(Person person) {
+}
+
+@UponUpdating(entity = Person.class, filter = ActivePersonFilter.class)
+public void onPersonUpdated(Person newPerson, Person oldPerson) {
+}
+
+@UponDeleting(entity = Person.class, filter = ActivePersonFilter.class)
+public void onPersonDeleted(Person person) {
+}
+```
+
+| Annotation | Operation | Custom filter |
+| --- | --- | --- |
+| `@UponInserting` | INSERT | Supported |
+| `@UponUpdating` | UPDATE | Supported |
+| `@UponDeleting` | DELETE | Supported |
+| `@TentacolousListener` | Selected with `action` | Supported |
+
+`getEntity()` contains the current payload. `getOldEntity()` is available for updates and is `null` for inserts and deletes. The context also exposes `getOperation()`, `getEventId()`, `getEntityName()`, and `getRecordKey()`.
+
+For updates, `getChangedFields()` returns the changed JSON field names and `hasChanged("status")` checks one field. Inserts and deletes return an empty set and `false`.
+
+When `filter` is configured together with `field`, `valueType`, or `value`, Tentacolous logs a warning. The custom filter has priority and the declarative filter is not executed. Filter errors follow the normal event retry flow.
+
+<!-- Source: api/declarative-filters.md -->
+
+## Filter types {#filters}
+
+Filters always use this structure:
+
+```text
+field = "fieldName",
+valueType = ValueType.TYPE,
+value = "expected value"
+```
+
+`field`, `valueType`, and `value` must be declared together. If one is missing, Tentacolous fails during listener scanning and prints an example of the valid form.
+
+| ValueType | value format | Example |
+| --- | --- | --- |
+| `STRING` | Exact text | `"APPROVED"` |
+| `BOOLEAN` | `true` or `false` | `"true"` |
+| `NUMBER` | Long integer number | `"1"` |
+| `INTEGER` | Integer number | `"7"` |
+| `LONG` | Long integer number | `"999"` |
+| `DECIMAL` | Exact decimal | `"10.50"` |
+| `DOUBLE` | Floating point decimal | `"3.14"` |
+| `DATE` | ISO date | `"2026-07-07"` |
+| `TIME` | ISO time | `"13:45:00"` |
+| `DATETIME` | ISO instant or datetime | `"2026-07-07T13:45:00Z"` |
+| `UUID` | Canonical UUID | `"550e8400-e29b-41d4-a716-446655440000"` |
+
+<!-- Source: api/invalid-combinations.md -->
+
+## Invalid combinations {#invalid}
+
+These combinations should fail when the application starts.
+
+### Missing field
+
+```java
+@UponInserting(
+    entity = Person.class,
+    valueType = ValueType.BOOLEAN,
+    value = "true"
+)
+public void invalid(Person person) {
+}
+```
+
+### Missing value
+
+```java
+@UponInserting(
+    entity = Person.class,
+    field = "active",
+    valueType = ValueType.BOOLEAN
+)
+public void invalid(Person person) {
+}
+```
+
+### Missing valueType
+
+```java
+@UponUpdating(
+    entity = Person.class,
+    field = "name",
+    value = "Anthony"
+)
+public void invalid(Person person) {
+}
+```
+
+Use the complete declarative filter instead:
+
+```java
+@UponUpdating(
+    entity = Person.class,
+    field = "name",
+    valueType = ValueType.STRING,
+    value = "Anthony"
+)
+public void valid(Person person) {
+}
+```
+
+### Same operation declared twice
+
+```java
+@UponUpdating(entity = Person.class)
+@TentacolousListener(entity = Person.class, action = ActionListener.UPDATE)
+public void invalid(Person person) {
+}
+```
+
+A method can listen to different operations, but not to the same operation twice.
+
+### Method with more than one parameter
+
+```java
+@UponInserting(entity = Person.class)
+public void invalid(Person person, String other) {
+}
+```
+
+### Incompatible parameter
+
+```java
+@UponInserting(entity = Person.class)
+public void invalid(String person) {
+}
+```
+
+<!-- Source: api/listeners.md -->
+
+## Listeners and operations {#operations}
+
+Start with the operation-specific annotations. They remain fully supported in 0.1.8 and now also accept custom filters. The generic listener is explained afterward as an optional alternative.
+
+### UponInserting
+
+`@UponInserting` runs a method when an `INSERT` occurs on the entity table.
+
+```java
+@UponInserting(entity = Person.class)
+public void onPersonInserted(Person person) {
+    System.out.println("Inserted: " + person.getEmail());
+}
+```
+
+Use cases: run logic after a record is created, send a notification, start a workflow or create an audit record.
+
+#### Insert with explicit logical name
+
+```java
+@UponInserting(entity = Person.class, entityName = "Person")
+public void onPersonInserted(Person person) {
+}
+```
+
+#### Insert with STRING filter
+
+```java
+@UponInserting(
+    entity = Person.class,
+    field = "email",
+    valueType = ValueType.STRING,
+    value = "admin@example.com"
+)
+public void onAdminInserted(Person person) {
+}
+```
+
+#### Insert with BOOLEAN filter
+
+```java
+@UponInserting(
+    entity = User.class,
+    field = "active",
+    valueType = ValueType.BOOLEAN,
+    value = "true"
+)
+public void onActiveUserInserted(User user) {
+}
+```
+
+#### Insert with numeric filter
+
+```java
+@UponInserting(
+    entity = User.class,
+    field = "level",
+    valueType = ValueType.LONG,
+    value = "1"
+)
+public void onLevelOneUserInserted(User user) {
+}
+```
+
+#### Insert with date filter
+
+```java
+@UponInserting(
+    entity = Payment.class,
+    field = "paymentDate",
+    valueType = ValueType.DATE,
+    value = "2026-07-07"
+)
+public void onPaymentDate(Payment payment) {
+}
+```
+
+#### Insert with excluded columns
+
+```java
+@UponInserting(
+    entity = User.class,
+    exclude = {"password", "token"}
+)
+public void onUserInserted(User user) {
+}
+```
+
+### UponUpdating
+
+`@UponUpdating` runs a method when an `UPDATE` occurs on the entity table.
+
+```java
+@UponUpdating(entity = Person.class)
+public void onPersonUpdated(Person person) {
+    System.out.println("Updated: " + person.getEmail());
+}
+```
+
+You can also receive the previous record values by adding a second parameter of the same entity type.
+
+```java
+@UponUpdating(entity = Person.class)
+public void onPersonUpdated(Person newPerson, Person oldPerson) {
+}
+```
+
+If you add a third parameter, Tentacolous provides the previous snapshots for that same record, ordered from oldest to newest.
+
+```java
+@UponUpdating(entity = Person.class)
+public void onPersonUpdated(Person newPerson, Person oldPerson, List<Person> history) {
+}
+```
+
+The history parameter can be a `List<Person>` or `Person[]`. Tentacolous matches the record by its `@Id` column when available, otherwise by `id`.
+
+Use cases: recalculate derived data, invalidate cache, notify other systems or synchronize with an external service.
+
+#### Update with STRING filter
+
+```java
+@UponUpdating(
+    entity = Payment.class,
+    field = "status",
+    valueType = ValueType.STRING,
+    value = "APPROVED"
+)
+public void onPaymentApproved(Payment payment) {
+}
+```
+
+#### Update with BOOLEAN filter
+
+```java
+@UponUpdating(
+    entity = User.class,
+    field = "enabled",
+    valueType = ValueType.BOOLEAN,
+    value = "false"
+)
+public void onUserDisabled(User user) {
+}
+```
+
+#### Update with DATETIME filter
+
+```java
+@UponUpdating(
+    entity = Invoice.class,
+    field = "paidAt",
+    valueType = ValueType.DATETIME,
+    value = "2026-07-07T13:45:00Z"
+)
+public void onInvoicePaidAt(Invoice invoice) {
+}
+```
+
+#### Update with excluded columns
+
+```java
+@UponUpdating(
+    entity = User.class,
+    exclude = {"password", "refresh_token"}
+)
+public void onUserUpdated(User user) {
+}
+```
+
+Excluded columns are removed from both the new and previous payloads.
+
+### UponDeleting
+
+`@UponDeleting` runs a method when a `DELETE` occurs on the entity table. For a delete, the payload contains the previous values of the record because the row no longer exists after deletion.
+
+```java
+@UponDeleting(entity = Person.class)
+public void onPersonDeleted(Person person) {
+    System.out.println("Deleted: " + person.getEmail());
+}
+```
+
+You can also receive the previous snapshots for that same record by adding a second parameter.
+
+```java
+@UponDeleting(entity = Person.class)
+public void onPersonDeleted(Person person, List<Person> history) {
+}
+```
+
+The history parameter can be a `List<Person>` or `Person[]`.
+
+Use cases: clean up external resources, delete related data in another database, notify about deletions or register deletion audit data.
+
+#### Delete with STRING filter
+
+```java
+@UponDeleting(
+    entity = Person.class,
+    field = "email",
+    valueType = ValueType.STRING,
+    value = "admin@example.com"
+)
+public void onAdminDeleted(Person person) {
+}
+```
+
+#### Delete with UUID filter
+
+```java
+@UponDeleting(
+    entity = Session.class,
+    field = "externalId",
+    valueType = ValueType.UUID,
+    value = "550e8400-e29b-41d4-a716-446655440000"
+)
+public void onSessionDeleted(Session session) {
+}
+```
+
+#### Delete with excluded columns
+
+```java
+@UponDeleting(
+    entity = User.class,
+    exclude = {"password", "token"}
+)
+public void onUserDeleted(User user) {
+}
+```
+
+### Generic alternative: TentacolousListener
+
+`@TentacolousListener` is the generic alternative. Its `action` determines the operation and valid method signature.
+
+```java
+@TentacolousListener(entity = Person.class, action = ActionListener.INSERT)
+public void onPersonInserted(Person person) {
+}
+```
+
+```java
+@TentacolousListener(entity = Person.class, action = ActionListener.UPDATE)
+public void onPersonUpdated(Person newPerson, Person oldPerson, List<Person> history) {
+}
+```
+
+```java
+@TentacolousListener(entity = Person.class, action = ActionListener.DELETE)
+public void onPersonDeleted(Person person, List<Person> history) {
+}
+```
+
+The parameter rules are identical to the corresponding operation-specific annotations.
+
+<!-- Source: concepts/configuration.md -->
+
+## Application configuration {#config}
+
+Tentacolous needs your application to have a database connection. Example `application.yml`:
+
+```yaml
+tentacolous:
+  enabled: true
+  schema-management: auto
+  event-table: db_change_event
+  poll-interval: 1s
+  initial-delay: 0s
+  batch-size: 100
+  max-attempts: 3
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/mydb
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+```
+
+### Available properties
+
+| Property | Default | What it does |
+| --- | --- | --- |
+| `tentacolous.enabled` | `true` | Enables or disables Tentacolous. |
+| `tentacolous.schema-management` | `auto` | Defines whether Tentacolous creates, validates, or ignores database infrastructure. |
+| `tentacolous.event-table` | `db_change_event` | Name of the event table. |
+| `tentacolous.poll-interval` | `1s` | How often pending events are read. |
+| `tentacolous.initial-delay` | `0s` | Delay before the poller starts. |
+| `tentacolous.batch-size` | `100` | Maximum number of events read in each cycle. |
+| `tentacolous.max-attempts` | `3` | Retry limit before an event is marked as `FAILED`. |
+
+### Schema management modes
+
+| Mode | Common use | Behavior |
+| --- | --- | --- |
+| `auto` | Development | Creates the table, function and triggers if needed. |
+| `create` | Controlled development environments | Forces supported infrastructure creation. |
+| `validate` | Production | Validates that infrastructure exists without creating it. |
+| `none` | Production with migrations | Does not create or validate infrastructure. |
+
+To get started, use `schema-management: auto`. In production, `validate` or `none` is usually a better choice because creating triggers requires elevated database permissions.
+
+<!-- Source: concepts/entity-mapping.md -->
+
+## Example entity {#entity}
+
+Tentacolous uses the entity to know which database table it should listen to.
+
+```java
+@Entity
+@Table(name = "person")
+public class Person {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String name;
+    private String lastname;
+    private String email;
+
+    public Person() {
+    }
+
+    // getters and setters
+}
+```
+
+If the entity has `@Table(name = "person")`, Tentacolous listens to the `person` table. If it does not have `@Table`, Tentacolous infers the table name from the class name.
+
+| Entity | Inferred table |
+| --- | --- |
+| `Person` | `person` |
+| `UserAccount` | `user_account` |
+| `PaymentTransaction` | `payment_transaction` |
+
+That is why the annotations do not have a `table` parameter: the selected entity already represents the table.
+
+<!-- Source: concepts/how-it-works.md -->
+
+## How it works internally {#internals}
+
+Tentacolous does not use JPA events. This is intentional: JPA events only work when the change goes through the same application. Tentacolous is designed to detect real database changes, even when they come from outside your application.
+
+In PostgreSQL, Tentacolous creates:
+
+- A `db_change_event` table.
+- A `db_change_event_notify_change()` function.
+- One trigger per table and operation.
+
+The trigger stores `entity_name`, `operation`, `payload`, `old_payload`, `record_key`, `status`, `attempts`, `last_error` and processing timestamps.
+
+`payload` contains the current row for inserts and updates, and the deleted row for deletes. `old_payload` contains the previous row only for updates. `record_key` identifies the affected record, using the entity `@Id` column when available or `id` otherwise.
+
+When a listener asks for history, Tentacolous queries previous `INSERT` and `UPDATE` payloads for the same `entity_name` and `record_key`, ordered from oldest to newest.
+
+The poller looks for `PENDING` events, marks them as `PROCESSING`, runs the listener and finally marks them as `PROCESSED`. If an error happens, Tentacolous stores `last_error` and retries until `tentacolous.max-attempts` is reached.
+
+<!-- Source: concepts/production.md -->
+
+## Production {#production}
+
+- Create the table, function and triggers using controlled migrations.
+- Use `tentacolous.schema-management=validate` to verify infrastructure.
+- If you manage schema manually, include the `old_payload` and `record_key` columns and pass the record key field to the trigger function.
+- Monitor `FAILED` events.
+- Clean up or archive `db_change_event`.
+- Avoid slow logic inside listeners.
+- Publish to a queue if the process is heavy.
+
+<!-- Source: concepts/security.md -->
+
+## Security {#security}
+
+- Do not store secrets in the payload.
+- Use `exclude` for sensitive columns.
+- Protect `db_change_event` with proper database permissions.
+- In production, use `schema-management=validate` or `schema-management=none`.
+- Keep listeners idempotent because retries may happen.
+
+<!-- Source: es/api/annotations.md -->
+
+## Parametros de anotaciones {#annotations}
+
+Las anotaciones especificas y `@TentacolousListener(...)` comparten la misma configuracion de listener.
+
+| Parametro | Requerido | Descripcion |
+| --- | --- | --- |
+| `entity` | Si | Clase de entidad que representa la tabla y recibe el payload deserializado. |
+| `action` | Solo para `@TentacolousListener` | `ActionListener.INSERT`, `ActionListener.UPDATE` o `ActionListener.DELETE`. |
+| `entityName` | No | Nombre logico del evento. Si se omite, Tentacolous usa el nombre simple de la clase. |
+| `field` | Solo con filtros | Campo del payload que se quiere comparar. |
+| `valueType` | Solo con filtros | Tipo usado para interpretar `value`. |
+| `value` | Solo con filtros | Valor esperado, siempre escrito como texto. |
+| `filter` | No | Bean de Spring que extiende `TentacolousFilter<T>`. Reemplaza el filtro declarativo. |
+| `order` | No | Orden de ejecucion del listener. Los valores menores se ejecutan primero; el valor por defecto es `0`. |
+| `exclude` | No | Columnas que no deben almacenarse en el payload del evento. |
+
+### Orden de listeners
+
+Usa `order` cuando varios listeners procesan la misma entidad y operacion. El orden funciona entre anotaciones especificas y genericas.
+
+```java
+@UponUpdating(entity = Person.class, order = 10)
+public void updateProfile(Person person) {
+}
+
+@TentacolousListener(
+    entity = Person.class,
+    action = ActionListener.UPDATE,
+    order = 20
+)
+public void registerAudit(Person person) {
+}
+```
+
+Si un listener falla, los siguientes no se ejecutan y el evento sigue el flujo normal de reintentos. Los efectos de los listeners deben ser idempotentes.
+
+### Sobre entityName
+
+La mayoria de las veces no necesitas `entityName`. Por defecto, `@UponInserting(entity = Person.class)` usa `Person`. Ese valor se almacena en `db_change_event.entity_name` y se usa internamente para relacionar eventos con listeners.
+
+Usa `entityName` solo en casos avanzados donde necesites un nombre logico estable, por ejemplo cuando infraestructura externa ya escribe eventos con un nombre especifico.
+
+### Sobre exclude
+
+`exclude` no filtra listeners. Evita que columnas especificas se almacenen en el payload JSON del evento.
+
+```java
+@UponInserting(
+    entity = User.class,
+    exclude = {"password", "token", "secret_key"}
+)
+public void onUserInserted(User user) {
+}
+```
+
+Esto importa porque la tabla de eventos puede contener datos de negocio. Normalmente no quieres guardar secretos ahi.
+
+<!-- Source: es/api/custom-filters.md -->
+
+## Filtros personalizados {#custom-filters}
+
+El filtro programatico es la novedad principal de `0.1.8`. Define la regla una vez en una clase reutilizable y usala desde cualquier anotacion de listener. La clase del filtro debe ser un bean de Spring.
+
+```java
+@Component
+public class ActivePersonFilter extends TentacolousFilter<Person> {
+
+    @Override
+    public boolean accept(TentacolousFilterContext<Person> context) {
+        Person person = context.getEntity();
+        Person oldPerson = context.getOldEntity();
+
+        return person.isActive()
+                && (oldPerson == null
+                    || !Objects.equals(person.getStatus(), oldPerson.getStatus()));
+    }
+}
+```
+
+```java
+@TentacolousListener(
+    entity = Person.class,
+    action = ActionListener.UPDATE,
+    filter = ActivePersonFilter.class
+)
+public void onActivePersonUpdated(Person newPerson, Person oldPerson) {
+}
+```
+
+### Disponible en todas las anotaciones
+
+`@TentacolousListener` es opcional. Las anotaciones anteriores siguen disponibles y ahora aceptan el mismo filtro personalizado:
+
+```java
+@UponInserting(entity = Person.class, filter = ActivePersonFilter.class)
+public void onPersonInserted(Person person) {
+}
+
+@UponUpdating(entity = Person.class, filter = ActivePersonFilter.class)
+public void onPersonUpdated(Person newPerson, Person oldPerson) {
+}
+
+@UponDeleting(entity = Person.class, filter = ActivePersonFilter.class)
+public void onPersonDeleted(Person person) {
+}
+```
+
+| Anotacion | Operacion | Filtro personalizado |
+| --- | --- | --- |
+| `@UponInserting` | INSERT | Disponible |
+| `@UponUpdating` | UPDATE | Disponible |
+| `@UponDeleting` | DELETE | Disponible |
+| `@TentacolousListener` | Seleccionada con `action` | Disponible |
+
+`getEntity()` contiene el payload actual. `getOldEntity()` esta disponible en updates y es `null` en inserts y deletes. El contexto tambien ofrece `getOperation()`, `getEventId()`, `getEntityName()` y `getRecordKey()`.
+
+En updates, `getChangedFields()` entrega los nombres de campos JSON modificados y `hasChanged("status")` consulta un campo. En inserts y deletes devuelve un conjunto vacio y `false`.
+
+Cuando se configura `filter` junto con `field`, `valueType` o `value`, Tentacolous escribe un warning. El filtro personalizado tiene prioridad y el filtro declarativo no se ejecuta. Los errores del filtro siguen el flujo normal de reintentos.
+
+<!-- Source: es/api/declarative-filters.md -->
+
+## Tipos de filtros {#filters}
+
+Los filtros siempre usan esta estructura:
+
+```text
+field = "fieldName",
+valueType = ValueType.TYPE,
+value = "expected value"
+```
+
+`field`, `valueType` y `value` deben declararse juntos. Si falta uno, Tentacolous falla durante el escaneo de listeners y muestra un ejemplo de la forma valida.
+
+| ValueType | Formato de value | Ejemplo |
+| --- | --- | --- |
+| `STRING` | Texto exacto | `"APPROVED"` |
+| `BOOLEAN` | `true` or `false` | `"true"` |
+| `NUMBER` | Numero entero largo | `"1"` |
+| `INTEGER` | Numero entero | `"7"` |
+| `LONG` | Numero entero largo | `"999"` |
+| `DECIMAL` | Decimal exacto | `"10.50"` |
+| `DOUBLE` | Decimal de punto flotante | `"3.14"` |
+| `DATE` | Fecha ISO | `"2026-07-07"` |
+| `TIME` | Hora ISO | `"13:45:00"` |
+| `DATETIME` | Instant o datetime ISO | `"2026-07-07T13:45:00Z"` |
+| `UUID` | UUID canonico | `"550e8400-e29b-41d4-a716-446655440000"` |
+
+<!-- Source: es/api/invalid-combinations.md -->
+
+## Combinaciones invalidas {#invalid}
+
+Estas combinaciones deberian fallar cuando inicia la aplicacion.
+
+### Falta field
+
+```java
+@UponInserting(
+    entity = Person.class,
+    valueType = ValueType.BOOLEAN,
+    value = "true"
+)
+public void invalid(Person person) {
+}
+```
+
+### Falta value
+
+```java
+@UponInserting(
+    entity = Person.class,
+    field = "active",
+    valueType = ValueType.BOOLEAN
+)
+public void invalid(Person person) {
+}
+```
+
+### Falta valueType
+
+```java
+@UponUpdating(
+    entity = Person.class,
+    field = "name",
+    value = "Anthony"
+)
+public void invalid(Person person) {
+}
+```
+
+Usa el filtro declarativo completo:
+
+```java
+@UponUpdating(
+    entity = Person.class,
+    field = "name",
+    valueType = ValueType.STRING,
+    value = "Anthony"
+)
+public void valid(Person person) {
+}
+```
+
+### Misma operacion declarada dos veces
+
+```java
+@UponUpdating(entity = Person.class)
+@TentacolousListener(entity = Person.class, action = ActionListener.UPDATE)
+public void invalid(Person person) {
+}
+```
+
+Un metodo puede escuchar operaciones distintas, pero no la misma operacion dos veces.
+
+### Metodo con mas de un parametro
+
+```java
+@UponInserting(entity = Person.class)
+public void invalid(Person person, String other) {
+}
+```
+
+### Parametro incompatible
+
+```java
+@UponInserting(entity = Person.class)
+public void invalid(String person) {
+}
+```
+
+<!-- Source: es/api/listeners.md -->
+
+## Listeners y operaciones {#operations}
+
+Comienza con las anotaciones especificas por operacion. Siguen completamente disponibles en 0.1.8 y ahora tambien aceptan filtros personalizados. El listener generico se explica despues como una alternativa opcional.
+
+### UponInserting
+
+`@UponInserting` ejecuta un metodo cuando ocurre un `INSERT` en la tabla de la entidad.
+
+```java
+@UponInserting(entity = Person.class)
+public void onPersonInserted(Person person) {
+    System.out.println("Inserted: " + person.getEmail());
+}
+```
+
+Casos de uso: ejecutar logica despues de crear un registro, enviar una notificacion, iniciar un flujo o crear un registro de auditoria.
+
+#### Insert con nombre logico explicito
+
+```java
+@UponInserting(entity = Person.class, entityName = "Person")
+public void onPersonInserted(Person person) {
+}
+```
+
+#### Insert con filtro STRING
+
+```java
+@UponInserting(
+    entity = Person.class,
+    field = "email",
+    valueType = ValueType.STRING,
+    value = "admin@example.com"
+)
+public void onAdminInserted(Person person) {
+}
+```
+
+#### Insert con filtro BOOLEAN
+
+```java
+@UponInserting(
+    entity = User.class,
+    field = "active",
+    valueType = ValueType.BOOLEAN,
+    value = "true"
+)
+public void onActiveUserInserted(User user) {
+}
+```
+
+#### Insert con filtro numerico
+
+```java
+@UponInserting(
+    entity = User.class,
+    field = "level",
+    valueType = ValueType.LONG,
+    value = "1"
+)
+public void onLevelOneUserInserted(User user) {
+}
+```
+
+#### Insert con filtro de fecha
+
+```java
+@UponInserting(
+    entity = Payment.class,
+    field = "paymentDate",
+    valueType = ValueType.DATE,
+    value = "2026-07-07"
+)
+public void onPaymentDate(Payment payment) {
+}
+```
+
+#### Insert con columnas excluidas
+
+```java
+@UponInserting(
+    entity = User.class,
+    exclude = {"password", "token"}
+)
+public void onUserInserted(User user) {
+}
+```
+
+### UponUpdating
+
+`@UponUpdating` ejecuta un metodo cuando ocurre un `UPDATE` en la tabla de la entidad.
+
+```java
+@UponUpdating(entity = Person.class)
+public void onPersonUpdated(Person person) {
+    System.out.println("Updated: " + person.getEmail());
+}
+```
+
+Tambien puedes recibir los valores anteriores del registro agregando un segundo parametro del mismo tipo de entidad.
+
+```java
+@UponUpdating(entity = Person.class)
+public void onPersonUpdated(Person newPerson, Person oldPerson) {
+}
+```
+
+Si agregas un tercer parametro, Tentacolous entrega los snapshots anteriores de ese mismo registro, ordenados desde el mas antiguo al mas reciente.
+
+```java
+@UponUpdating(entity = Person.class)
+public void onPersonUpdated(Person newPerson, Person oldPerson, List<Person> history) {
+}
+```
+
+El parametro de historico puede ser `List<Person>` o `Person[]`. Tentacolous relaciona el registro por su columna `@Id` cuando existe, o por `id` en caso contrario.
+
+Casos de uso: recalcular datos derivados, invalidar cache, notificar a otros sistemas o sincronizar con un servicio externo.
+
+#### Update con filtro STRING
+
+```java
+@UponUpdating(
+    entity = Payment.class,
+    field = "status",
+    valueType = ValueType.STRING,
+    value = "APPROVED"
+)
+public void onPaymentApproved(Payment payment) {
+}
+```
+
+#### Update con filtro BOOLEAN
+
+```java
+@UponUpdating(
+    entity = User.class,
+    field = "enabled",
+    valueType = ValueType.BOOLEAN,
+    value = "false"
+)
+public void onUserDisabled(User user) {
+}
+```
+
+#### Update con filtro DATETIME
+
+```java
+@UponUpdating(
+    entity = Invoice.class,
+    field = "paidAt",
+    valueType = ValueType.DATETIME,
+    value = "2026-07-07T13:45:00Z"
+)
+public void onInvoicePaidAt(Invoice invoice) {
+}
+```
+
+#### Update con columnas excluidas
+
+```java
+@UponUpdating(
+    entity = User.class,
+    exclude = {"password", "refresh_token"}
+)
+public void onUserUpdated(User user) {
+}
+```
+
+Las columnas excluidas se eliminan tanto del payload nuevo como del payload anterior.
+
+### UponDeleting
+
+`@UponDeleting` ejecuta un metodo cuando ocurre un `DELETE` en la tabla de la entidad. Para un delete, el payload contiene los valores previos del registro porque la fila ya no existe despues de eliminarse.
+
+```java
+@UponDeleting(entity = Person.class)
+public void onPersonDeleted(Person person) {
+    System.out.println("Deleted: " + person.getEmail());
+}
+```
+
+Tambien puedes recibir los snapshots anteriores de ese mismo registro agregando un segundo parametro.
+
+```java
+@UponDeleting(entity = Person.class)
+public void onPersonDeleted(Person person, List<Person> history) {
+}
+```
+
+El parametro de historico puede ser `List<Person>` o `Person[]`.
+
+Casos de uso: limpiar recursos externos, eliminar datos relacionados en otra base de datos, notificar eliminaciones o registrar auditoria de borrado.
+
+#### Delete con filtro STRING
+
+```java
+@UponDeleting(
+    entity = Person.class,
+    field = "email",
+    valueType = ValueType.STRING,
+    value = "admin@example.com"
+)
+public void onAdminDeleted(Person person) {
+}
+```
+
+#### Delete con filtro UUID
+
+```java
+@UponDeleting(
+    entity = Session.class,
+    field = "externalId",
+    valueType = ValueType.UUID,
+    value = "550e8400-e29b-41d4-a716-446655440000"
+)
+public void onSessionDeleted(Session session) {
+}
+```
+
+#### Delete con columnas excluidas
+
+```java
+@UponDeleting(
+    entity = User.class,
+    exclude = {"password", "token"}
+)
+public void onUserDeleted(User user) {
+}
+```
+
+### Alternativa generica: TentacolousListener
+
+`@TentacolousListener` es la alternativa generica. Su parametro `action` determina la operacion y la firma valida del metodo.
+
+```java
+@TentacolousListener(entity = Person.class, action = ActionListener.INSERT)
+public void onPersonInserted(Person person) {
+}
+```
+
+```java
+@TentacolousListener(entity = Person.class, action = ActionListener.UPDATE)
+public void onPersonUpdated(Person newPerson, Person oldPerson, List<Person> history) {
+}
+```
+
+```java
+@TentacolousListener(entity = Person.class, action = ActionListener.DELETE)
+public void onPersonDeleted(Person person, List<Person> history) {
+}
+```
+
+Las reglas de parametros son identicas a las anotaciones especificas correspondientes.
+
+<!-- Source: es/concepts/configuration.md -->
+
+## Configuracion de la aplicacion {#config}
+
+Tentacolous necesita que tu aplicacion tenga una conexion de base de datos. Ejemplo de `application.yml`:
+
+```yaml
+tentacolous:
+  enabled: true
+  schema-management: auto
+  event-table: db_change_event
+  poll-interval: 1s
+  initial-delay: 0s
+  batch-size: 100
+  max-attempts: 3
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/mydb
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+```
+
+### Propiedades disponibles
+
+| Propiedad | Valor por defecto | Que hace |
+| --- | --- | --- |
+| `tentacolous.enabled` | `true` | Activa o desactiva Tentacolous. |
+| `tentacolous.schema-management` | `auto` | Define si Tentacolous crea, valida o ignora la infraestructura de base de datos. |
+| `tentacolous.event-table` | `db_change_event` | Nombre de la tabla de eventos. |
+| `tentacolous.poll-interval` | `1s` | Frecuencia con que se leen eventos pendientes. |
+| `tentacolous.initial-delay` | `0s` | Demora antes de iniciar el poller. |
+| `tentacolous.batch-size` | `100` | Numero maximo de eventos leidos por ciclo. |
+| `tentacolous.max-attempts` | `3` | Limite de reintentos antes de marcar un evento como `FAILED`. |
+
+### Modos de schema management
+
+| Modo | Uso comun | Comportamiento |
+| --- | --- | --- |
+| `auto` | Desarrollo | Crea la tabla, funcion y triggers si hace falta. |
+| `create` | Ambientes de desarrollo controlados | Fuerza la creacion de infraestructura soportada. |
+| `validate` | Produccion | Valida que la infraestructura exista sin crearla. |
+| `none` | Produccion con migraciones | No crea ni valida infraestructura. |
+
+Para comenzar, usa `schema-management: auto`. En produccion, `validate` o `none` suele ser mejor porque crear triggers requiere permisos elevados en la base de datos.
+
+<!-- Source: es/concepts/entity-mapping.md -->
+
+## Entidad de ejemplo {#entity}
+
+Tentacolous usa la entidad para saber que tabla de base de datos debe escuchar.
+
+```java
+@Entity
+@Table(name = "person")
+public class Person {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String name;
+    private String lastname;
+    private String email;
+
+    public Person() {
+    }
+
+    // getters and setters
+}
+```
+
+Si la entidad tiene `@Table(name = "person")`, Tentacolous escucha la tabla `person`. Si no tiene `@Table`, Tentacolous infiere el nombre de tabla desde el nombre de clase.
+
+| Entidad | Tabla inferida |
+| --- | --- |
+| `Person` | `person` |
+| `UserAccount` | `user_account` |
+| `PaymentTransaction` | `payment_transaction` |
+
+Por eso las anotaciones no tienen un parametro `table`: la entidad seleccionada ya representa la tabla.
+
+<!-- Source: es/concepts/how-it-works.md -->
+
+## Como funciona internamente {#internals}
+
+Tentacolous no usa eventos JPA. Esto es intencional: los eventos JPA solo funcionan cuando el cambio pasa por la misma aplicacion. Tentacolous esta disenado para detectar cambios reales de base de datos, incluso cuando vienen desde fuera de tu aplicacion.
+
+En PostgreSQL, Tentacolous crea:
+
+- Una tabla `db_change_event`.
+- Una funcion `db_change_event_notify_change()`.
+- Un trigger por tabla y operacion.
+
+El trigger almacena `entity_name`, `operation`, `payload`, `old_payload`, `record_key`, `status`, `attempts`, `last_error` y timestamps de procesamiento.
+
+`payload` contiene la fila actual para inserts y updates, y la fila eliminada para deletes. `old_payload` contiene la fila anterior solo para updates. `record_key` identifica el registro afectado, usando la columna `@Id` de la entidad cuando existe o `id` en caso contrario.
+
+Cuando un listener pide historico, Tentacolous consulta los payloads anteriores de `INSERT` y `UPDATE` para el mismo `entity_name` y `record_key`, ordenados desde el mas antiguo al mas reciente.
+
+El poller busca eventos `PENDING`, los marca como `PROCESSING`, ejecuta el listener y finalmente los marca como `PROCESSED`. Si ocurre un error, Tentacolous guarda `last_error` y reintenta hasta alcanzar `tentacolous.max-attempts`.
+
+<!-- Source: es/concepts/production.md -->
+
+## Produccion {#production}
+
+- Crea la tabla, funcion y triggers usando migraciones controladas.
+- Usa `tentacolous.schema-management=validate` para verificar la infraestructura.
+- Si administras el schema manualmente, incluye las columnas `old_payload` y `record_key`, y pasa el campo de clave del registro a la funcion del trigger.
+- Monitorea eventos `FAILED`.
+- Limpia o archiva `db_change_event`.
+- Evita logica lenta dentro de los listeners.
+- Publica a una cola si el proceso es pesado.
+
+<!-- Source: es/concepts/security.md -->
+
+## Seguridad {#security}
+
+- No guardes secretos en el payload.
+- Usa `exclude` para columnas sensibles.
+- Protege `db_change_event` con permisos adecuados de base de datos.
+- En produccion, usa `schema-management=validate` o `schema-management=none`.
+- Manten los listeners idempotentes porque pueden ocurrir reintentos.
+
+<!-- Source: es/examples/manual-testing.md -->
+
+## Pruebas manuales {#manual-testing}
+
+Asume esta entidad y este listener:
+
+```java
+@Entity
+@Table(name = "person")
+public class Person {
+    // ...
+}
+
+@UponInserting(entity = Person.class)
+public void inserted(Person person) {
+    System.out.println("Person inserted: " + person.getEmail());
+}
+```
+
+Inicia tu aplicacion Spring Boot. Tentacolous deberia imprimir logs similares a:
+
+```text
+Tentacolous registered 1 listener method(s)
+Initializing Tentacolous schema using event table 'db_change_event'
+Creating Tentacolous INSERT trigger for table 'person' and entity 'Person'
+Starting Tentacolous poller
+```
+
+Luego ejecuta este SQL en PostgreSQL:
+
+```sql
+INSERT INTO public.person (email, lastname, "name")
+VALUES ('test@example.com', 'Perez', 'Ana');
+```
+
+Deberias ver esto en la consola de tu aplicacion:
+
+```java
+Person inserted: test@example.com
+```
+
+Inspecciona eventos y triggers con:
+
+```sql
+select *
+from db_change_event
+order by id desc;
+
+select trigger_name, event_object_schema, event_object_table
+from information_schema.triggers
+where event_object_table = 'person';
+```
+
+<!-- Source: es/examples/tests.md -->
+
+## Ejecutar tests de Tentacolous {#tests}
+
+Desde la carpeta de la libreria:
+
+```shell
+mvn test
+```
+
+Resultado esperado:
+
+```text
+BUILD SUCCESS
+```
+
+<!-- Source: es/getting-started/installation.md -->
+
+## Snippets de dependencias {#dependency}
+
+### Gradle
+
+```groovy
+implementation 'io.github.aimtone:tentacolous:0.1.8'
+```
+
+### Maven
+
+```xml
+<dependency>
+  <groupId>io.github.aimtone</groupId>
+  <artifactId>tentacolous</artifactId>
+  <version>0.1.8</version>
+</dependency>
+```
+
+<!-- Source: es/getting-started/migration.md -->
+
+## Migracion desde 0.1.7 {#migration}
+
+La version `0.1.8` mantiene compatibilidad con los listeners existentes. No necesitas reemplazar `@UponInserting`, `@UponUpdating` ni `@UponDeleting`, y esta version no requiere cambios en la infraestructura de base de datos.
+
+- Usa `@TentacolousListener` solo si prefieres la anotacion generica con `action`.
+- Los filtros personalizados son beans opcionales de Spring que extienden `TentacolousFilter<T>`.
+- El tipo generico del filtro debe ser compatible con la entidad del listener.
+- Si un filtro personalizado se declara junto con `field`, `valueType` o `value`, el filtro personalizado tiene prioridad y Tentacolous escribe un warning.
+- Los filtros declarativos deben definir `field`, `valueType` y `value` juntos.
+- Cada metodo puede declarar una anotacion listener por operacion.
+
+<!-- Source: es/getting-started/overview.md -->
+
+## Resumen {#overview}
+
+Tentacolous es una libreria Spring Boot que ejecuta metodos Java cuando una tabla de base de datos recibe un `INSERT`, `UPDATE` o `DELETE`.
+
+La diferencia importante es que Tentacolous reacciona a los cambios de la base de datos sin importar donde se originen.
+
+**La version 0.1.8 se enfoca en filtros programaticos reutilizables.** Un filtro puede revisar la entidad actual, la entidad anterior durante un update y la operacion antes de decidir si el listener debe ejecutarse. Funciona con la nueva anotacion generica `@TentacolousListener` y con las anotaciones existentes `@UponInserting`, `@UponUpdating` y `@UponDeleting`.
+
+**1.** Crea una tabla de eventos.
+
+**2.** Crea una funcion PostgreSQL.
+
+**3.** Crea triggers para las tablas que tienen listeners.
+
+**4.** Los triggers escriben eventos en `db_change_event`.
+
+**5.** Un poller Spring lee esos eventos.
+
+**6.** Tentacolous convierte el payload JSON en tu entidad Java.
+
+**7.** Tentacolous ejecuta el metodo anotado.
+
+<!-- Source: es/getting-started/requirements.md -->
+
+## Requisitos {#requirements}
+
+- Java 17 o superior.
+- Spring Boot.
+- Una aplicacion Spring Boot con un `DataSource` configurado.
+- PostgreSQL para la creacion automatica de triggers.
+
+La creacion automatica de infraestructura de base de datos esta implementada actualmente para PostgreSQL.
+
+<!-- Source: es/index.md -->
+
+Spring Boot + PostgreSQL
+
+# Tentacolous {#top}
+
+Ejecuta codigo Java cuando alguien inserta, modifica o elimina datos en PostgreSQL, aunque el cambio provenga de otra aplicacion, un script SQL o un sistema legado.
+
+Olvidate de consultar la base de datos constantemente o de conectar toda tu aplicacion a JPA. Tentacolous detecta cambios reales mediante triggers y ejecuta metodos Java anotados de forma simple, rapida y confiable.
+
+[> Empezar](#start)
+[# Documentacion](documentation/index.md)
+[^ GitHub](https://github.com/aimtone/tentacolous)
+
+![](../assets/logoblanco.png)
+
+```java
+@UponInserting(entity = Person.class)
+public void onPersonInserted(Person person) {
+    notify(person.getEmail());
+}
+```
+
+Lo esencial
+
+## Conecta los cambios de PostgreSQL con tu codigo Java. {#features}
+
+Tentacolous detecta cambios reales en tu base de datos y ejecuta automaticamente el codigo que tu defines. Sin importar si el cambio proviene de tu aplicacion, otra API, un script SQL o un sistema legado.
+
+### Detecta cambios reales
+
+No solo escucha las operaciones realizadas por tu aplicacion. Tambien captura cambios hechos desde otras APIs, herramientas SQL, procesos ETL o sistemas legados.
+
+### Escribe solo Java
+
+Anota un metodo con `@UponInserting`, `@UponUpdating` o `@UponDeleting` y recibe la entidad modificada lista para trabajar. Sin escribir consultas adicionales ni codigo repetitivo.
+
+### Funciona de forma confiable
+
+Tentacolous utiliza triggers de PostgreSQL, una tabla de eventos y un procesador configurable para garantizar que cada cambio sea detectado y procesado correctamente.
+
+Inicio rapido
+
+## Empieza en menos de 5 minutos. {#start}
+
+Solo agrega la dependencia, configura Tentacolous y comienza a reaccionar a los cambios de PostgreSQL con Java.
+
+1. Agrega la dependenciaMaven Central
+
+Maven
+Gradle
+
+```xml
+<dependency>
+  <groupId>io.github.aimtone</groupId>
+  <artifactId>tentacolous</artifactId>
+  <version>0.1.8</version>
+</dependency>
+```
+
+```groovy
+implementation 'io.github.aimtone:tentacolous:0.1.8'
+```
+
+2. Agrega propertiesConfig Spring
+
+application.yml
+application.properties
+
+```yaml
+tentacolous:
+  enabled: true
+  schema-management: auto
+  event-table: db_change_event
+  poll-interval: 1s
+  initial-delay: 0s
+  batch-size: 100
+  max-attempts: 3
+```
+
+```properties
+tentacolous.enabled=true
+tentacolous.schema-management=auto
+tentacolous.event-table=db_change_event
+tentacolous.poll-interval=1s
+tentacolous.initial-delay=0s
+tentacolous.batch-size=100
+tentacolous.max-attempts=3
+```
+
+3. Usa las anotacionesJava
+
+Generica
+Insertar
+Actualizar
+Eliminar
+
+```java
+@UponInserting(entity = Person.class)
+public void onPersonInserted(Person person) {
+    notify(person.getEmail());
+}
+```
+
+```java
+@UponUpdating(entity = Person.class)
+public void onPersonUpdated(Person person) {
+    syncProfile(person);
+}
+
+// o
+
+@UponUpdating(entity = Person.class)
+public void onPersonUpdated(Person newPerson, Person oldPerson) {
+    syncProfile(newPerson);
+}
+
+// o
+
+@UponUpdating(entity = Person.class)
+public void onPersonUpdated(Person newPerson, Person oldPerson, List<Person> history) {
+    syncProfile(newPerson);
+}
+```
+
+```java
+@UponDeleting(entity = Person.class)
+public void onPersonDeleted(Person person) {
+    removeFromIndex(person.getId());
+}
+
+// o
+
+@UponDeleting(entity = Person.class)
+public void onPersonDeleted(Person person, List<Person> history) {
+    removeFromIndex(person.getId());
+}
+```
+
+```java
+@TentacolousListener(
+    entity = Person.class,
+    action = ActionListener.UPDATE
+)
+public void onPersonUpdated(Person newPerson, Person oldPerson) {
+    syncProfile(newPerson);
+}
+```
+
+### Necesitas detalles de filtros, modos de schema, seguridad o pruebas manuales?
+
+Consulta la guia tecnica para ver configuracion avanzada, ejemplos completos y recomendaciones de produccion.
+
+[Abrir documentacion](documentation/index.md)
+
+Por que existe
+
+## Porque no todos los cambios pasan por tu aplicacion. {#why}
+
+En muchos proyectos, la base de datos es modificada por mas de un sistema: otras APIs, scripts SQL, procesos ETL o aplicaciones legadas. Tentacolous permite que tu aplicacion reaccione a esos cambios sin depender de quien los realizo.
+
+**01**
+
+**PostgreSQL es la fuente de la verdad.** Cada `INSERT`, `UPDATE` o `DELETE` genera un evento desde la propia base de datos. No importa que aplicacion realizo el cambio.
+
+**02**
+
+**Tu logica sigue viviendo en Java.** Solo escribes metodos anotados. Tentacolous recibe el cambio, reconstruye la entidad y ejecuta tu codigo automaticamente.
+
+**03**
+
+**Disenado para produccion.** Controla como se crean los objetos de infraestructura, configura reintentos y adapta el comportamiento segun tu entorno.
+
+Usos reales
+
+## Donde Tentacolous aporta valor de verdad. {#use-cases}
+
+Tentacolous encaja en sistemas donde la base de datos la toca mas de un actor y tu aplicacion Spring Boot aun necesita reaccionar con codigo Java claro y testeable.
+
+### Auditoria tecnica
+
+Captura cambios reales de tablas, conserva estados de procesamiento e inspecciona eventos fallidos sin esconder todo en memoria.
+
+### Sincronizacion de sistemas
+
+Reacciona cuando se insertan, actualizan o eliminan registros y sincroniza otro servicio, cache, indice de busqueda o API interna.
+
+### Integraciones legacy
+
+Permite que una app Spring Boot moderna escuche cambios hechos por sistemas antiguos que todavia escriben directo en PostgreSQL.
+
+### Automatizacion de negocio
+
+Dispara flujos Java cuando aparece un pago, orden, solicitud o usuario en la base, aunque venga de otro proceso.
+
+### Reacciones post-cambio
+
+Envia notificaciones, recalcula datos derivados, invalida cache o publica un evento despues de una operacion real en base de datos.
+
+### Visibilidad operacional
+
+Usa estados como pending, processed y failed para entender que se ejecuto, que se reintento y que necesita atencion.
+
+Como funciona
+
+## Un flujo corto y observable. {#how}
+
+Tentacolous registra listeners, crea o valida infraestructura PostgreSQL, captura cambios y despacha eventos hacia tus metodos.
+
+**Tabla PostgreSQL**INSERT / UPDATE / DELETE
+
+->
+
+**db\_change\_event**payload JSON + estado
+
+->
+
+**Poller Spring**lotes + reintentos
+
+->
+
+**Listener Java**@UponInserting, @UponUpdating, @UponDeleting
+
+![](../assets/logoblanco.png)
+Listo cuando tu base cambia
+
+## Manten la base de datos observable y la reaccion en Java.
+
+Detecta cambios reales, ejecuta tu logica de negocio y conserva visibilidad sobre cada evento procesado.
+
+[Empezar con 0.1.8](#start)
+[Leer documentacion](documentation/index.md)
+[Ver en GitHub](https://github.com/aimtone/tentacolous)
+
+<!-- Source: examples/manual-testing.md -->
+
+## Manual testing {#manual-testing}
+
+Assume this entity and listener:
+
+```java
+@Entity
+@Table(name = "person")
+public class Person {
+    // ...
+}
+
+@UponInserting(entity = Person.class)
+public void inserted(Person person) {
+    System.out.println("Person inserted: " + person.getEmail());
+}
+```
+
+Start your Spring Boot application. Tentacolous should print logs similar to:
+
+```text
+Tentacolous registered 1 listener method(s)
+Initializing Tentacolous schema using event table 'db_change_event'
+Creating Tentacolous INSERT trigger for table 'person' and entity 'Person'
+Starting Tentacolous poller
+```
+
+Then run this SQL in PostgreSQL:
+
+```sql
+INSERT INTO public.person (email, lastname, "name")
+VALUES ('test@example.com', 'Perez', 'Ana');
+```
+
+You should see this in your application console:
+
+```java
+Person inserted: test@example.com
+```
+
+Inspect events and triggers with:
+
+```sql
+select *
+from db_change_event
+order by id desc;
+
+select trigger_name, event_object_schema, event_object_table
+from information_schema.triggers
+where event_object_table = 'person';
+```
+
+<!-- Source: examples/tests.md -->
+
+## Running Tentacolous tests {#tests}
+
+From the library folder:
+
+```shell
+mvn test
+```
+
+Expected result:
+
+```text
+BUILD SUCCESS
+```
+
+<!-- Source: getting-started/installation.md -->
+
+## Dependency snippets {#dependency}
+
+### Gradle
+
+```groovy
+implementation 'io.github.aimtone:tentacolous:0.1.8'
+```
+
+### Maven
+
+```xml
+<dependency>
+  <groupId>io.github.aimtone</groupId>
+  <artifactId>tentacolous</artifactId>
+  <version>0.1.8</version>
+</dependency>
+```
+
+<!-- Source: getting-started/migration.md -->
+
+## Migrating from 0.1.7 {#migration}
+
+Version `0.1.8` remains compatible with existing listeners. You do not need to replace `@UponInserting`, `@UponUpdating`, or `@UponDeleting`, and this release requires no database infrastructure changes.
+
+- Use `@TentacolousListener` only when you prefer the generic annotation with `action`.
+- Custom filters are optional Spring beans extending `TentacolousFilter<T>`.
+- The filter generic type must be compatible with the listener entity.
+- If a custom filter is declared together with `field`, `valueType`, or `value`, the custom filter has priority and Tentacolous logs a warning.
+- Declarative filters must define `field`, `valueType`, and `value` together.
+- Each method may declare one listener annotation per operation.
+
+<!-- Source: getting-started/overview.md -->
+
+## Overview {#overview}
+
+Tentacolous is a Spring Boot library that runs Java methods when a database table receives an `INSERT`, `UPDATE`, or `DELETE`.
+
+The important difference is that Tentacolous reacts to database changes regardless of where they originate.
+
+**Version 0.1.8 focuses on reusable programmatic filters.** A filter can inspect the current entity, the previous entity during updates, and the operation before deciding whether the listener should run. This works with the new generic `@TentacolousListener` and with the existing `@UponInserting`, `@UponUpdating`, and `@UponDeleting` annotations.
+
+**1.** It creates an event table.
+
+**2.** It creates a PostgreSQL function.
+
+**3.** It creates triggers for tables that have listeners.
+
+**4.** The triggers write events into `db_change_event`.
+
+**5.** A Spring poller reads those events.
+
+**6.** Tentacolous converts the JSON payload into your Java entity.
+
+**7.** Tentacolous runs the annotated method.
+
+<!-- Source: getting-started/requirements.md -->
+
+## Requirements {#requirements}
+
+- Java 17 or higher.
+- Spring Boot.
+- A Spring Boot application with a configured `DataSource`.
+- PostgreSQL for automatic trigger creation.
+
+Automatic database infrastructure creation is currently implemented for PostgreSQL.
+
+<!-- Source: index.md -->
+
+Spring Boot + PostgreSQL
+
+# Tentacolous {#top}
+
+Run Java code when someone inserts, updates or deletes data in PostgreSQL, even if the change comes from another application, a SQL script or a legacy system.
+
+Stop constantly polling the database or coupling your whole application to JPA. Tentacolous detects real changes through triggers and runs annotated Java methods in a simple, fast and reliable way.
+
+[> Get Started](#start)
+[# Documentation](en/documentation/index.md)
+[^ GitHub](https://github.com/aimtone/tentacolous)
+
+![](assets/logoblanco.png)
+
+```java
+@UponInserting(entity = Person.class)
+public void onPersonInserted(Person person) {
+    notify(person.getEmail());
+}
+```
+
+Essentials
+
+## Connect PostgreSQL changes with your Java code. {#features}
+
+Tentacolous detects real changes in your database and automatically runs the code you define. It does not matter if the change comes from your application, another API, a SQL script or a legacy system.
+
+### Detect real changes
+
+It does not only listen to operations performed by your application. It also captures changes made by other APIs, SQL tools, ETL processes or legacy systems.
+
+### Write only Java
+
+Annotate a method with `@UponInserting`, `@UponUpdating` or `@UponDeleting` and receive the modified entity ready to use. No extra queries or repetitive code.
+
+### Works reliably
+
+Tentacolous uses PostgreSQL triggers, an event table and a configurable processor to ensure each change is detected and processed correctly.
+
+Quick start
+
+## Start in less than 5 minutes. {#start}
+
+Just add the dependency, configure Tentacolous and start reacting to PostgreSQL changes with Java.
+
+1. Add the dependencyMaven Central
+
+Maven
+Gradle
+
+```xml
+<dependency>
+  <groupId>io.github.aimtone</groupId>
+  <artifactId>tentacolous</artifactId>
+  <version>0.1.8</version>
+</dependency>
+```
+
+```groovy
+implementation 'io.github.aimtone:tentacolous:0.1.8'
+```
+
+2. Add propertiesSpring config
+
+application.yml
+application.properties
+
+```yaml
+tentacolous:
+  enabled: true
+  schema-management: auto
+  event-table: db_change_event
+  poll-interval: 1s
+  initial-delay: 0s
+  batch-size: 100
+  max-attempts: 3
+```
+
+```properties
+tentacolous.enabled=true
+tentacolous.schema-management=auto
+tentacolous.event-table=db_change_event
+tentacolous.poll-interval=1s
+tentacolous.initial-delay=0s
+tentacolous.batch-size=100
+tentacolous.max-attempts=3
+```
+
+3. Use annotationsJava
+
+Generic
+Insert
+Update
+Delete
+
+```java
+@UponInserting(entity = Person.class)
+public void onPersonInserted(Person person) {
+    notify(person.getEmail());
+}
+```
+
+```java
+@UponUpdating(entity = Person.class)
+public void onPersonUpdated(Person person) {
+    syncProfile(person);
+}
+
+// or
+
+@UponUpdating(entity = Person.class)
+public void onPersonUpdated(Person newPerson, Person oldPerson) {
+    syncProfile(newPerson);
+}
+
+// or
+
+@UponUpdating(entity = Person.class)
+public void onPersonUpdated(Person newPerson, Person oldPerson, List<Person> history) {
+    syncProfile(newPerson);
+}
+```
+
+```java
+@UponDeleting(entity = Person.class)
+public void onPersonDeleted(Person person) {
+    removeFromIndex(person.getId());
+}
+
+// or
+
+@UponDeleting(entity = Person.class)
+public void onPersonDeleted(Person person, List<Person> history) {
+    removeFromIndex(person.getId());
+}
+```
+
+```java
+@TentacolousListener(
+    entity = Person.class,
+    action = ActionListener.UPDATE
+)
+public void onPersonUpdated(Person newPerson, Person oldPerson) {
+    syncProfile(newPerson);
+}
+```
+
+### Need details about filters, schema modes, security or manual testing?
+
+Open the technical guide for advanced configuration, complete examples and production recommendations.
+
+[Open documentation](en/documentation/index.md)
+
+Why it exists
+
+## Because not every change goes through your application. {#why}
+
+In many projects, the database is modified by more than one system: other APIs, SQL scripts, ETL processes or legacy applications. Tentacolous lets your application react to those changes without depending on who made them.
+
+**01**
+
+**PostgreSQL is the source of truth.** Each `INSERT`, `UPDATE` or `DELETE` generates an event from the database itself. It does not matter which application made the change.
+
+**02**
+
+**Your logic still lives in Java.** You only write annotated methods. Tentacolous receives the change, rebuilds the entity and runs your code automatically.
+
+**03**
+
+**Designed for production.** Control how infrastructure objects are created, configure retries and adapt the behavior to your environment.
+
+Use cases
+
+## Where Tentacolous is genuinely useful. {#use-cases}
+
+Tentacolous fits systems where the database is touched by more than one actor and your Spring Boot application still needs to react with clear, testable Java code.
+
+### Technical audit flows
+
+Capture real table changes, keep processing states and inspect failed events without hiding everything inside application memory.
+
+### System synchronization
+
+React when records are inserted, updated or deleted and sync another service, cache, search index or internal API.
+
+### Legacy integrations
+
+Let a modern Spring Boot app listen to database changes made by older systems that still write directly to PostgreSQL.
+
+### Business automation
+
+Trigger Java workflows when a payment, order, request or user appears in the database, even if it came from another process.
+
+### Post-change reactions
+
+Send notifications, recalculate derived data, invalidate cache or publish an event after a real database operation.
+
+### Operational visibility
+
+Use event states such as pending, processed and failed to understand what ran, what retried and what needs attention.
+
+How it works
+
+## A short, observable flow. {#how}
+
+Tentacolous registers listeners, creates or validates PostgreSQL infrastructure, captures changes and dispatches events to your methods.
+
+**PostgreSQL table**INSERT / UPDATE / DELETE
+
+->
+
+**db\_change\_event**payload JSON + status
+
+->
+
+**Spring poller**batch + retries
+
+->
+
+**Java listener**@UponInserting, @UponUpdating, @UponDeleting
+
+![](assets/logoblanco.png)
+Ready when your database changes
+
+## Keep the database observable and the reaction in Java.
+
+Detect real changes, run your business logic and keep visibility over every processed event.
+
+[Start with 0.1.8](#start)
+[Read the docs](en/documentation/index.md)
+[View on GitHub](https://github.com/aimtone/tentacolous)
