@@ -1,0 +1,38 @@
+/* The source logos are several thousand pixels wide; constrain their display. */
+.md-header__button.md-logo img,
+.md-header__button.md-logo svg {
+  width: auto;
+  height: 1.8rem;
+  object-fit: contain;
+}
+
+.content-logo {
+  display: block;
+  width: min(10rem, 45%);
+  height: auto;
+  max-height: 6rem;
+  margin: 1rem auto 1.5rem;
+  object-fit: contain;
+}
+
+.content-logo--small {
+  width: min(7rem, 35%);
+  max-height: 4rem;
+}
+
+[data-md-color-scheme="slate"] .content-logo {
+  filter: invert(1);
+}
+
+/* Keep calls to action distinct without changing regular documentation links. */
+.md-content .md-button {
+  margin: 0.25rem 0.2rem 0.25rem 0;
+  border-radius: 0.4rem;
+}
+
+@media screen and (max-width: 44.984375em) {
+  .content-logo {
+    width: min(8rem, 40%);
+    max-height: 5rem;
+  }
+}
