@@ -1,30 +1,43 @@
 # Tentacolous
 
-> Tentacolous is a Java 17+ Spring Boot library that executes annotated Java listener methods for PostgreSQL INSERT, UPDATE, and DELETE events, including changes made outside the consuming application.
+> Java 17+ Spring Boot library for PostgreSQL INSERT, UPDATE, and DELETE listeners.
 
 Current stable version: 0.1.8
-Maven coordinates: io.github.aimtone:tentacolous:0.1.8
-Source repository: https://github.com/aimtone/tentacolous
+Source: https://github.com/aimtone/tentacolous
 
-## Current documentation
+## Documentation
 
-- [English documentation 0.1.8](https://aimtone.github.io/tentacolous/en/documentation/0.1.8/): installation, configuration, listeners, filters, ordering, changed fields, testing, and production guidance.
-- [Documentacion en espanol 0.1.8](https://aimtone.github.io/tentacolous/es/documentation/0.1.8/): instalacion, configuracion, listeners, filtros, orden, campos modificados, pruebas y produccion.
-
-## Version-specific documentation
-
-- [English 0.1.7](https://aimtone.github.io/tentacolous/en/documentation/0.1.7/): previous entity and record history support.
-- [Espanol 0.1.7](https://aimtone.github.io/tentacolous/es/documentation/0.1.7/): entidad anterior e historial del registro.
-- [English 0.1.6](https://aimtone.github.io/tentacolous/en/documentation/0.1.6/): initial listener API.
-- [Espanol 0.1.6](https://aimtone.github.io/tentacolous/es/documentation/0.1.6/): API inicial de listeners.
-
-## Public listener API in 0.1.8
-
-- `@TentacolousListener`: generic listener selected with `ActionListener.INSERT`, `UPDATE`, or `DELETE`.
-- `@UponInserting`, `@UponUpdating`, `@UponDeleting`: operation-specific listeners, still supported.
-- `TentacolousFilter<T>` and `TentacolousFilterContext<T>`: reusable Spring-managed programmatic filters.
-- All listener annotations support `entity`, `entityName`, `field`, `valueType`, `value`, `filter`, `order`, and `exclude`; the generic annotation additionally requires `action`.
-- A custom filter takes priority over declarative filters. Declarative filtering requires `field`, `valueType`, and `value` together.
-- `getChangedFields()` and `hasChanged(field)` apply to update filter contexts.
-
-Use the documentation matching the dependency version. Do not infer 0.1.8 features when answering questions about 0.1.6 or 0.1.7.
+- [api/annotations.md](https://aimtone.github.io/tentacolous/api/annotations/)
+- [api/custom-filters.md](https://aimtone.github.io/tentacolous/api/custom-filters/)
+- [api/declarative-filters.md](https://aimtone.github.io/tentacolous/api/declarative-filters/)
+- [api/invalid-combinations.md](https://aimtone.github.io/tentacolous/api/invalid-combinations/)
+- [api/listeners.md](https://aimtone.github.io/tentacolous/api/listeners/)
+- [concepts/configuration.md](https://aimtone.github.io/tentacolous/concepts/configuration/)
+- [concepts/entity-mapping.md](https://aimtone.github.io/tentacolous/concepts/entity-mapping/)
+- [concepts/how-it-works.md](https://aimtone.github.io/tentacolous/concepts/how-it-works/)
+- [concepts/production.md](https://aimtone.github.io/tentacolous/concepts/production/)
+- [concepts/security.md](https://aimtone.github.io/tentacolous/concepts/security/)
+- [es/api/annotations.md](https://aimtone.github.io/tentacolous/es/api/annotations/)
+- [es/api/custom-filters.md](https://aimtone.github.io/tentacolous/es/api/custom-filters/)
+- [es/api/declarative-filters.md](https://aimtone.github.io/tentacolous/es/api/declarative-filters/)
+- [es/api/invalid-combinations.md](https://aimtone.github.io/tentacolous/es/api/invalid-combinations/)
+- [es/api/listeners.md](https://aimtone.github.io/tentacolous/es/api/listeners/)
+- [es/concepts/configuration.md](https://aimtone.github.io/tentacolous/es/concepts/configuration/)
+- [es/concepts/entity-mapping.md](https://aimtone.github.io/tentacolous/es/concepts/entity-mapping/)
+- [es/concepts/how-it-works.md](https://aimtone.github.io/tentacolous/es/concepts/how-it-works/)
+- [es/concepts/production.md](https://aimtone.github.io/tentacolous/es/concepts/production/)
+- [es/concepts/security.md](https://aimtone.github.io/tentacolous/es/concepts/security/)
+- [es/examples/manual-testing.md](https://aimtone.github.io/tentacolous/es/examples/manual-testing/)
+- [es/examples/tests.md](https://aimtone.github.io/tentacolous/es/examples/tests/)
+- [es/getting-started/installation.md](https://aimtone.github.io/tentacolous/es/getting-started/installation/)
+- [es/getting-started/migration.md](https://aimtone.github.io/tentacolous/es/getting-started/migration/)
+- [es/getting-started/overview.md](https://aimtone.github.io/tentacolous/es/getting-started/overview/)
+- [es/getting-started/requirements.md](https://aimtone.github.io/tentacolous/es/getting-started/requirements/)
+- [Tentacolous](https://aimtone.github.io/tentacolous/es/index/)
+- [examples/manual-testing.md](https://aimtone.github.io/tentacolous/examples/manual-testing/)
+- [examples/tests.md](https://aimtone.github.io/tentacolous/examples/tests/)
+- [getting-started/installation.md](https://aimtone.github.io/tentacolous/getting-started/installation/)
+- [getting-started/migration.md](https://aimtone.github.io/tentacolous/getting-started/migration/)
+- [getting-started/overview.md](https://aimtone.github.io/tentacolous/getting-started/overview/)
+- [getting-started/requirements.md](https://aimtone.github.io/tentacolous/getting-started/requirements/)
+- [Tentacolous](https://aimtone.github.io/tentacolous/)
