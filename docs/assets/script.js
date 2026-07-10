@@ -100,7 +100,7 @@ const observer = new IntersectionObserver((entries) => {
       observer.unobserve(entry.target);
     }
   });
-}, { threshold: 0.12 });
+}, { threshold: 0.01 });
 
 document.querySelectorAll(".reveal").forEach((element) => observer.observe(element));
 
