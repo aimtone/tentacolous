@@ -4,11 +4,11 @@ Tentacolous is a Spring Boot library that runs Java methods when a database tabl
 
 The important difference is that Tentacolous reacts to database changes regardless of where they originate.
 
-**Version 0.1.8 focuses on reusable programmatic filters.** A filter can inspect the current entity, the previous entity during updates, and the operation before deciding whether the listener should run. This works with the new generic `@TentacolousListener` and with the existing `@UponInserting`, `@UponUpdating`, and `@UponDeleting` annotations.
+**Version 0.2.0 adds database-agnostic execution.** The same listener and filter API now works with PostgreSQL, MySQL, MariaDB, SQL Server, Oracle, and SQLite through automatically detected dialects.
 
 **1.** It creates an event table.
 
-**2.** It creates a PostgreSQL function.
+**2.** It creates database-specific event infrastructure and triggers.
 
 **3.** It creates triggers for tables that have listeners.
 

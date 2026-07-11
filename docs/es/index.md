@@ -1,8 +1,8 @@
-Spring Boot + PostgreSQL
+Spring Boot + seis bases de datos SQL
 
 # Tentacolous {#top}
 
-Ejecuta codigo Java cuando alguien inserta, modifica o elimina datos en PostgreSQL, aunque el cambio provenga de otra aplicacion, un script SQL o un sistema legado.
+Ejecuta codigo Java cuando alguien inserta, modifica o elimina datos en PostgreSQL, MySQL, MariaDB, SQL Server, Oracle o SQLite, aunque el cambio provenga de otra aplicacion, un script SQL o un sistema legado.
 
 Olvidate de consultar la base de datos constantemente o de conectar toda tu aplicacion a JPA. Tentacolous detecta cambios reales mediante triggers y ejecuta metodos Java anotados de forma simple, rapida y confiable.
 
@@ -21,7 +21,7 @@ public void onPersonInserted(Person person) {
 
 Lo esencial
 
-## Conecta los cambios de PostgreSQL con tu codigo Java. {#features}
+## Conecta los cambios de tu base de datos con codigo Java. {#features}
 
 Tentacolous detecta cambios reales en tu base de datos y ejecuta automaticamente el codigo que tu defines. Sin importar si el cambio proviene de tu aplicacion, otra API, un script SQL o un sistema legado.
 
@@ -35,13 +35,13 @@ Anota un metodo con `@UponInserting`, `@UponUpdating` o `@UponDeleting` y recibe
 
 ### Funciona de forma confiable
 
-Tentacolous utiliza triggers de PostgreSQL, una tabla de eventos y un procesador configurable para garantizar que cada cambio sea detectado y procesado correctamente.
+Tentacolous utiliza triggers especificos para cada motor, una tabla de eventos y un procesador configurable para garantizar que cada cambio sea detectado y procesado correctamente.
 
 Inicio rapido
 
 ## Empieza en menos de 5 minutos. {#start}
 
-Solo agrega la dependencia, configura Tentacolous y comienza a reaccionar a los cambios de PostgreSQL con Java.
+Agrega la dependencia y el driver JDBC, configura Tentacolous y comienza a reaccionar a cambios de base de datos con Java.
 
 1. Agrega la dependenciaMaven Central
 
@@ -52,12 +52,12 @@ Gradle
 <dependency>
   <groupId>io.github.aimtone</groupId>
   <artifactId>tentacolous</artifactId>
-  <version>0.1.8</version>
+  <version>0.2.0</version>
 </dependency>
 ```
 
 ```groovy
-implementation 'io.github.aimtone:tentacolous:0.1.8'
+implementation 'io.github.aimtone:tentacolous:0.2.0'
 ```
 
 2. Agrega propertiesConfig Spring

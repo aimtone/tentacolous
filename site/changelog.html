@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="PostgreSQL database change listeners for Spring Boot">
+        <meta name="description" content="Database-agnostic change listeners for Spring Boot">
       
       
       
@@ -477,7 +477,7 @@
   <span class="md-ellipsis">
     
   
-    Migration from 0.1.7
+    Migration to 0.2.0
   
 
     
@@ -1066,6 +1066,8 @@
       
         
       
+        
+      
     
     
     
@@ -1120,6 +1122,34 @@
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="documentation/0.2.0/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0.2.0
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
               
             
               
@@ -1280,6 +1310,67 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#020-2026-07-11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0.2.0 — 2026-07-11
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="0.2.0 — 2026-07-11">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#considerations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Considerations
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#018-2026-07-10" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1292,7 +1383,7 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#added" class="md-nav__link">
+  <a href="#added_1" class="md-nav__link">
     <span class="md-ellipsis">
       
         Added
@@ -1331,7 +1422,7 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#added_1" class="md-nav__link">
+  <a href="#added_2" class="md-nav__link">
     <span class="md-ellipsis">
       
         Added
@@ -1381,7 +1472,7 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#added_2" class="md-nav__link">
+  <a href="#added_3" class="md-nav__link">
     <span class="md-ellipsis">
       
         Added
@@ -1392,7 +1483,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#fixed" class="md-nav__link">
+  <a href="#fixed_1" class="md-nav__link">
     <span class="md-ellipsis">
       
         Fixed
@@ -1453,6 +1544,67 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#020-2026-07-11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0.2.0 — 2026-07-11
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="0.2.0 — 2026-07-11">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#considerations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Considerations
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#018-2026-07-10" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1465,7 +1617,7 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#added" class="md-nav__link">
+  <a href="#added_1" class="md-nav__link">
     <span class="md-ellipsis">
       
         Added
@@ -1504,7 +1656,7 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#added_1" class="md-nav__link">
+  <a href="#added_2" class="md-nav__link">
     <span class="md-ellipsis">
       
         Added
@@ -1554,7 +1706,7 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#added_2" class="md-nav__link">
+  <a href="#added_3" class="md-nav__link">
     <span class="md-ellipsis">
       
         Added
@@ -1565,7 +1717,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#fixed" class="md-nav__link">
+  <a href="#fixed_1" class="md-nav__link">
     <span class="md-ellipsis">
       
         Fixed
@@ -1614,8 +1766,27 @@
 <h1 id="changelog">Changelog<a class="headerlink" href="#changelog" title="Permanent link">&para;</a></h1>
 <p>All notable changes to Tentacolous are documented on this page.</p>
 <p>The format is based on <a href="https://keepachangelog.com/">Keep a Changelog</a>.</p>
-<h2 id="018-2026-07-10">0.1.8 — 2026-07-10<a class="headerlink" href="#018-2026-07-10" title="Permanent link">&para;</a></h2>
+<h2 id="020-2026-07-11">0.2.0 — 2026-07-11<a class="headerlink" href="#020-2026-07-11" title="Permanent link">&para;</a></h2>
 <h3 id="added">Added<a class="headerlink" href="#added" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Added automatic dialect detection and database-specific infrastructure for PostgreSQL, MySQL, MariaDB, SQL Server, Oracle, and SQLite.</li>
+<li>Added portable polling, history queries, JSON payload generation, generated IDs, and boolean handling through the dialect contract.</li>
+</ul>
+<h3 id="fixed">Fixed<a class="headerlink" href="#fixed" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Removed PostgreSQL-only SQL from common polling and history paths.</li>
+<li>Normalized Oracle JSON keys so payloads deserialize to conventional Java property names.</li>
+</ul>
+<h3 id="validation">Validation<a class="headerlink" href="#validation" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Validated all six dialects with a 28-listener end-to-end matrix covering INSERT, UPDATE, DELETE, <code>@TentacolousListener</code>, declarative/custom filters, ordering, exclusions, previous entities, and list/array history.</li>
+</ul>
+<h3 id="considerations">Considerations<a class="headerlink" href="#considerations" title="Permanent link">&para;</a></h3>
+<ul>
+<li>SQLite record keys must not be reused during history retention. Prefer <code>INTEGER PRIMARY KEY AUTOINCREMENT</code> or UUID for business tables.</li>
+</ul>
+<h2 id="018-2026-07-10">0.1.8 — 2026-07-10<a class="headerlink" href="#018-2026-07-10" title="Permanent link">&para;</a></h2>
+<h3 id="added_1">Added<a class="headerlink" href="#added_1" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Added Spring-managed programmatic filters for <code>@UponInserting</code>, <code>@UponUpdating</code>, <code>@UponDeleting</code>, and <code>@TentacolousListener</code> through the new <code>filter</code> annotation parameter.</li>
 <li>Added <code>TentacolousFilter&lt;T&gt;</code> and <code>TentacolousFilterContext&lt;T&gt;</code> with access to the current entity, the previous entity for updates, and the database operation.</li>
@@ -1636,7 +1807,7 @@
 <li>Filter contexts now expose <code>getChangedFields()</code> and <code>hasChanged(...)</code> for update events.</li>
 </ul>
 <h2 id="017-2026-07-09">0.1.7 — 2026-07-09<a class="headerlink" href="#017-2026-07-09" title="Permanent link">&para;</a></h2>
-<h3 id="added_1">Added<a class="headerlink" href="#added_1" title="Permanent link">&para;</a></h3>
+<h3 id="added_2">Added<a class="headerlink" href="#added_2" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Added optional previous-entity support for <code>@UponUpdating</code> listeners.</li>
 <li>Added optional change history support for <code>@UponUpdating</code> and <code>@UponDeleting</code> listeners.</li>
@@ -1664,14 +1835,14 @@
 <li>Projects using <code>tentacolous.schema-management=none</code> must update their manual database infrastructure to include the new <code>old_payload</code> and <code>record_key</code> columns and the updated trigger function.</li>
 </ul>
 <h2 id="016-2026-07-07">0.1.6 — 2026-07-07<a class="headerlink" href="#016-2026-07-07" title="Permanent link">&para;</a></h2>
-<h3 id="added_2">Added<a class="headerlink" href="#added_2" title="Permanent link">&para;</a></h3>
+<h3 id="added_3">Added<a class="headerlink" href="#added_3" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Initial public release of Tentacolous.</li>
 <li>Core library functionality.</li>
 <li>Initial API.</li>
 <li>Basic documentation and usage examples.</li>
 </ul>
-<h3 id="fixed">Fixed<a class="headerlink" href="#fixed" title="Permanent link">&para;</a></h3>
+<h3 id="fixed_1">Fixed<a class="headerlink" href="#fixed_1" title="Permanent link">&para;</a></h3>
 <ul>
 <li>No fixes yet.</li>
 </ul>

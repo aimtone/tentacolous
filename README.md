@@ -2,7 +2,7 @@
 
 ![Java](https://img.shields.io/badge/Java-17+-orange?logo=openjdk)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.x-6DB33F?logo=springboot)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16+-4169E1?logo=postgresql&logoColor=white)
+![Databases](https://img.shields.io/badge/databases-6_supported-4169E1)
 ![Maven Central](https://img.shields.io/maven-central/v/io.github.aimtone/tentacolous)
 ![GitHub stars](https://img.shields.io/github/stars/aimtone/tentacolous?style=social)
 ![GitHub forks](https://img.shields.io/github/forks/aimtone/tentacolous?style=social)
@@ -16,7 +16,7 @@
 - [Generic Listener](#generic-listener)
 - [Custom Filters](#custom-filters)
 - [Listener Ordering](#listener-ordering)
-- [Migrating from 0.1.7](#migrating-from-017)
+- [Migrating to 0.2.0](#migrating-to-020)
 - [Installation](#installation)
 - [Configuration](#configuration)
 - [Use Cases](#use-cases)
@@ -50,14 +50,15 @@ Database support:
 | Database | Automatic infrastructure | Payload/old payload | History | Status |
 |---|---:|---:|---:|---|
 | PostgreSQL | Yes | Yes | Yes | Stable |
-| MySQL 8+ | Yes | Yes | Yes | Experimental |
-| MariaDB | Yes | Yes | Yes | Experimental |
-| SQL Server 2016+ | Yes | Yes | Yes | Experimental |
-| Oracle 19c+ | Yes | Yes | Yes | Experimental |
-| SQLite with JSON1 | Yes | Yes | Yes | Experimental |
+| MySQL 8+ | Yes | Yes | Yes | Stable |
+| MariaDB | Yes | Yes | Yes | Stable |
+| SQL Server 2016+ | Yes | Yes | Yes | Stable |
+| Oracle 19c+ | Yes | Yes | Yes | Stable |
+| SQLite with JSON1 | Yes | Yes | Yes | Stable* |
 
-`Experimental` means that the dialect implements the complete Tentacolous contract but still needs
-end-to-end validation against the supported server and JDBC-driver versions before being declared stable.
+All dialects passed the same 28-listener end-to-end matrix. `SQLite` business tables should use
+non-reusable record keys (for example, `INTEGER PRIMARY KEY AUTOINCREMENT` or UUID) to prevent
+separate entity lifecycles from sharing history when a deleted key is reused.
 
 ## Quick Example
 
@@ -229,11 +230,12 @@ public void registerAudit(Person person) {
 
 If a listener fails, dispatch stops and the event follows the normal retry flow. Listener side effects should therefore be idempotent.
 
-## Migrating from 0.1.7
+## Migrating to 0.2.0
 
-Version `0.1.8` is backward compatible with existing listener annotations. You do not need to replace `@UponInserting`, `@UponUpdating`, or `@UponDeleting`, and there are no new database infrastructure requirements.
+Version `0.2.0` is backward compatible with existing listener annotations and adds automatic dialect selection for PostgreSQL, MySQL, MariaDB, SQL Server, Oracle, and SQLite.
 
-- Use `@TentacolousListener` only when you prefer one generic annotation selected with `action`.
+- Keep your existing annotations and add the JDBC driver for the selected database.
+- Use `@TentacolousListener` when you prefer one generic annotation selected with `action`.
 - Add `filter = YourFilter.class` only when you need programmatic filtering.
 - Custom filters must be Spring beans and must extend `TentacolousFilter` with a compatible entity type.
 - If a custom filter is declared together with `field`, `valueType`, or `value`, the custom filter has priority and Tentacolous logs a warning.
@@ -248,7 +250,7 @@ Add the dependency to your `pom.xml`:
 <dependency>
     <groupId>io.github.aimtone</groupId>
     <artifactId>tentacolous</artifactId>
-    <version>0.1.8</version>
+    <version>0.2.0</version>
 </dependency>
 ```
 
@@ -296,7 +298,7 @@ That means your listeners are executed even when the data is modified by:
   https://aimtone.github.io/tentacolous/
 
 - **Documentation**  
-  https://aimtone.github.io/tentacolous/en/documentation/0.1.8/
+  https://aimtone.github.io/tentacolous/en/documentation/0.2.0/
 
 - **GitHub Repository**  
   https://github.com/aimtone/tentacolous

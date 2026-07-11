@@ -2,7 +2,7 @@
 
 Tentacolous does not use JPA events. This is intentional: JPA events only work when the change goes through the same application. Tentacolous is designed to detect real database changes, even when they come from outside your application.
 
-In PostgreSQL, Tentacolous creates:
+For the detected database, Tentacolous creates:
 
 - A `db_change_event` table.
 - A `db_change_event_notify_change()` function.

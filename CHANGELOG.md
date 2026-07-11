@@ -4,6 +4,30 @@ All notable changes to Tentacolous will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.2.0] - 2026-07-11
+
+### Added
+- Added automatic database dialect detection through JDBC metadata.
+- Added complete trigger, event-table, payload, previous-payload, history, pagination, and boolean handling for PostgreSQL, MySQL, MariaDB, SQL Server, Oracle, and SQLite.
+- Added database-specific JSON generation and column metadata discovery.
+- Added a shared dialect resolver used by schema management, polling, and event history.
+
+### Changed
+- Moved PostgreSQL-specific polling and history SQL behind the `DatabaseDialect` contract.
+- Tentacolous remains a single JAR; applications only need to provide the JDBC driver for their database.
+- Updated documentation and examples for database-agnostic configuration.
+
+### Fixed
+- Normalized Oracle JSON object keys to lowercase so payloads deserialize into standard Java property names.
+- Removed PostgreSQL-only `LIMIT` and `payload::jsonb` expressions from common execution paths.
+
+### Validation
+- Validated the full 28-listener end-to-end matrix on PostgreSQL 16, MySQL 8.4, MariaDB 11.8, SQL Server 16, Oracle Database 23, and SQLite 3.53.
+- The matrix covers operation-specific and generic listeners, declarative and custom filters, ordering, excluded columns, current/previous entities, and list/array history.
+
+### Known considerations
+- SQLite can reuse a deleted `INTEGER PRIMARY KEY` value unless the business table uses `AUTOINCREMENT`. Reused record keys can join otherwise unrelated event histories; use non-reusable keys during the history retention period.
+
 ## [0.1.8] - 2026-07-10
 
 ### Added

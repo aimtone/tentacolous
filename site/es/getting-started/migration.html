@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Listeners de cambios de PostgreSQL para Spring Boot">
+        <meta name="description" content="Listeners de cambios agnosticos a la base de datos para Spring Boot">
       
       
       
@@ -31,7 +31,7 @@
     
     
       
-        <title>Migración desde 0.1.7 - Tentacolous</title>
+        <title>Migración a 0.2.0 - Tentacolous</title>
       
     
     
@@ -121,7 +121,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Migración desde 0.1.7
+              Migración a 0.2.0
             
           </span>
         </div>
@@ -486,7 +486,7 @@
   <span class="md-ellipsis">
     
   
-    Migración desde 0.1.7
+    Migración a 0.2.0
   
 
     
@@ -504,7 +504,7 @@
   <span class="md-ellipsis">
     
   
-    Migración desde 0.1.7
+    Migración a 0.2.0
   
 
     
@@ -531,7 +531,7 @@
   <a href="#migration" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Migracion desde 0.1.7
+        Migracion a 0.2.0
       
     </span>
   </a>
@@ -1122,6 +1122,8 @@
       
         
       
+        
+      
     
     
     
@@ -1176,6 +1178,34 @@
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../documentation/0.2.0/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0.2.0
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
               
             
               
@@ -1324,7 +1354,7 @@
   <a href="#migration" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Migracion desde 0.1.7
+        Migracion a 0.2.0
       
     </span>
   </a>
@@ -1351,18 +1381,18 @@
   
 
 
-  <h1>Migración desde 0.1.7</h1>
+  <h1>Migración a 0.2.0</h1>
 
-<h2 id="migration">Migracion desde 0.1.7<a class="headerlink" href="#migration" title="Permanent link">&para;</a></h2>
-<p>La version <code>0.1.8</code> mantiene compatibilidad con los listeners existentes. No necesitas reemplazar <code>@UponInserting</code>, <code>@UponUpdating</code> ni <code>@UponDeleting</code>, y esta version no requiere cambios en la infraestructura de base de datos.</p>
-<ul>
-<li>Usa <code>@TentacolousListener</code> solo si prefieres la anotacion generica con <code>action</code>.</li>
-<li>Los filtros personalizados son beans opcionales de Spring que extienden <code>TentacolousFilter&lt;T&gt;</code>.</li>
-<li>El tipo generico del filtro debe ser compatible con la entidad del listener.</li>
-<li>Si un filtro personalizado se declara junto con <code>field</code>, <code>valueType</code> o <code>value</code>, el filtro personalizado tiene prioridad y Tentacolous escribe un warning.</li>
-<li>Los filtros declarativos deben definir <code>field</code>, <code>valueType</code> y <code>value</code> juntos.</li>
-<li>Cada metodo puede declarar una anotacion listener por operacion.</li>
-</ul>
+<h2 id="migration">Migracion a 0.2.0<a class="headerlink" href="#migration" title="Permanent link">&para;</a></h2>
+<p>La version <code>0.2.0</code> conserva la API de listeners de <code>0.1.8</code> y añade dialectos de base de datos. Las aplicaciones PostgreSQL existentes no necesitan cambiar anotaciones ni properties de Tentacolous.</p>
+<ol>
+<li>Actualiza la dependencia a <code>0.2.0</code>.</li>
+<li>Conserva solamente el driver JDBC de la base utilizada por la aplicacion.</li>
+<li>Verifica que el usuario tenga permisos para crear tablas y triggers cuando <code>schema-management</code> sea <code>auto</code> o <code>create</code>.</li>
+<li>Ejecuta la aplicacion en un ambiente no productivo y valida listeners INSERT, UPDATE y DELETE.</li>
+</ol>
+<p>Las aplicaciones con <code>schema-management=none</code> siguen siendo responsables de instalar manualmente la infraestructura especifica para su motor.</p>
+<p>En SQLite, usa una clave que no se reutilice durante la retencion del historial. Prefiere UUID o <code>INTEGER PRIMARY KEY AUTOINCREMENT</code> en las tablas de negocio.</p>
 
 
 

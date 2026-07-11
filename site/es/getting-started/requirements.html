@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Listeners de cambios de PostgreSQL para Spring Boot">
+        <meta name="description" content="Listeners de cambios agnosticos a la base de datos para Spring Boot">
       
       
       
@@ -533,7 +533,7 @@
   <span class="md-ellipsis">
     
   
-    Migración desde 0.1.7
+    Migración a 0.2.0
   
 
     
@@ -1122,6 +1122,8 @@
       
         
       
+        
+      
     
     
     
@@ -1176,6 +1178,34 @@
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../documentation/0.2.0/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0.2.0
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
               
             
               
@@ -1358,9 +1388,11 @@
 <li>Java 17 o superior.</li>
 <li>Spring Boot.</li>
 <li>Una aplicacion Spring Boot con un <code>DataSource</code> configurado.</li>
-<li>PostgreSQL para la creacion automatica de triggers.</li>
+<li>PostgreSQL, MySQL 8+, MariaDB, SQL Server 2016+, Oracle 19c+ o SQLite con JSON1, junto con su driver JDBC.</li>
 </ul>
-<p>La creacion automatica de infraestructura de base de datos esta implementada actualmente para PostgreSQL.</p>
+<p>Todos los dialectos indicados superaron la misma matriz de listeners de extremo a extremo. En SQLite,
+usa una clave de registro que no se reutilice durante la retencion del historial, preferiblemente
+<code>INTEGER PRIMARY KEY AUTOINCREMENT</code> o UUID.</p>
 
 
 

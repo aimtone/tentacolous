@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="PostgreSQL database change listeners for Spring Boot">
+        <meta name="description" content="Database-agnostic change listeners for Spring Boot">
       
       
       
@@ -31,7 +31,7 @@
     
     
       
-        <title>Migration from 0.1.7 - Tentacolous</title>
+        <title>Migration to 0.2.0 - Tentacolous</title>
       
     
     
@@ -121,7 +121,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Migration from 0.1.7
+              Migration to 0.2.0
             
           </span>
         </div>
@@ -486,7 +486,7 @@
   <span class="md-ellipsis">
     
   
-    Migration from 0.1.7
+    Migration to 0.2.0
   
 
     
@@ -504,7 +504,7 @@
   <span class="md-ellipsis">
     
   
-    Migration from 0.1.7
+    Migration to 0.2.0
   
 
     
@@ -531,7 +531,7 @@
   <a href="#migration" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Migrating from 0.1.7
+        Migrating to 0.2.0
       
     </span>
   </a>
@@ -1122,6 +1122,8 @@
       
         
       
+        
+      
     
     
     
@@ -1176,6 +1178,34 @@
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../documentation/0.2.0/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0.2.0
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
               
             
               
@@ -1324,7 +1354,7 @@
   <a href="#migration" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Migrating from 0.1.7
+        Migrating to 0.2.0
       
     </span>
   </a>
@@ -1351,18 +1381,18 @@
   
 
 
-  <h1>Migration from 0.1.7</h1>
+  <h1>Migration to 0.2.0</h1>
 
-<h2 id="migration">Migrating from 0.1.7<a class="headerlink" href="#migration" title="Permanent link">&para;</a></h2>
-<p>Version <code>0.1.8</code> remains compatible with existing listeners. You do not need to replace <code>@UponInserting</code>, <code>@UponUpdating</code>, or <code>@UponDeleting</code>, and this release requires no database infrastructure changes.</p>
-<ul>
-<li>Use <code>@TentacolousListener</code> only when you prefer the generic annotation with <code>action</code>.</li>
-<li>Custom filters are optional Spring beans extending <code>TentacolousFilter&lt;T&gt;</code>.</li>
-<li>The filter generic type must be compatible with the listener entity.</li>
-<li>If a custom filter is declared together with <code>field</code>, <code>valueType</code>, or <code>value</code>, the custom filter has priority and Tentacolous logs a warning.</li>
-<li>Declarative filters must define <code>field</code>, <code>valueType</code>, and <code>value</code> together.</li>
-<li>Each method may declare one listener annotation per operation.</li>
-</ul>
+<h2 id="migration">Migrating to 0.2.0<a class="headerlink" href="#migration" title="Permanent link">&para;</a></h2>
+<p>Version <code>0.2.0</code> keeps the listener API from <code>0.1.8</code> and adds database dialects. Existing PostgreSQL applications do not need to change their annotations or Tentacolous properties.</p>
+<ol>
+<li>Update the dependency to <code>0.2.0</code>.</li>
+<li>Keep only the JDBC driver for the database used by the application.</li>
+<li>Ensure the database user can create tables and triggers when <code>schema-management</code> is <code>auto</code> or <code>create</code>.</li>
+<li>Run the application once in a non-production environment and validate INSERT, UPDATE, and DELETE listeners.</li>
+</ol>
+<p>Applications using <code>schema-management=none</code> remain responsible for installing database-specific event infrastructure manually.</p>
+<p>For SQLite, use a record key that is not reused during event-history retention. Prefer UUID or <code>INTEGER PRIMARY KEY AUTOINCREMENT</code> for business tables.</p>
 
 
 

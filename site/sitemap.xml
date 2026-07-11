@@ -2,308 +2,322 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
     <url>
         <loc>https://aimtone.github.io/tentacolous/index.html</loc>
-        <lastmod>2026-07-10</lastmod>
+        <lastmod>2026-07-11</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://aimtone.github.io/tentacolous/index.html"/>
         <xhtml:link rel="alternate" hreflang="es" href="https://aimtone.github.io/tentacolous/es/index.html"/>
     </url>
     <url>
         <loc>https://aimtone.github.io/tentacolous/changelog.html</loc>
-        <lastmod>2026-07-10</lastmod>
+        <lastmod>2026-07-11</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://aimtone.github.io/tentacolous/changelog.html"/>
         <xhtml:link rel="alternate" hreflang="es" href="https://aimtone.github.io/tentacolous/es/changelog.html"/>
     </url>
     <url>
         <loc>https://aimtone.github.io/tentacolous/api/annotations.html</loc>
-        <lastmod>2026-07-10</lastmod>
+        <lastmod>2026-07-11</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://aimtone.github.io/tentacolous/api/annotations.html"/>
         <xhtml:link rel="alternate" hreflang="es" href="https://aimtone.github.io/tentacolous/es/api/annotations.html"/>
     </url>
     <url>
         <loc>https://aimtone.github.io/tentacolous/api/custom-filters.html</loc>
-        <lastmod>2026-07-10</lastmod>
+        <lastmod>2026-07-11</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://aimtone.github.io/tentacolous/api/custom-filters.html"/>
         <xhtml:link rel="alternate" hreflang="es" href="https://aimtone.github.io/tentacolous/es/api/custom-filters.html"/>
     </url>
     <url>
         <loc>https://aimtone.github.io/tentacolous/api/declarative-filters.html</loc>
-        <lastmod>2026-07-10</lastmod>
+        <lastmod>2026-07-11</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://aimtone.github.io/tentacolous/api/declarative-filters.html"/>
         <xhtml:link rel="alternate" hreflang="es" href="https://aimtone.github.io/tentacolous/es/api/declarative-filters.html"/>
     </url>
     <url>
         <loc>https://aimtone.github.io/tentacolous/api/invalid-combinations.html</loc>
-        <lastmod>2026-07-10</lastmod>
+        <lastmod>2026-07-11</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://aimtone.github.io/tentacolous/api/invalid-combinations.html"/>
         <xhtml:link rel="alternate" hreflang="es" href="https://aimtone.github.io/tentacolous/es/api/invalid-combinations.html"/>
     </url>
     <url>
         <loc>https://aimtone.github.io/tentacolous/api/listeners.html</loc>
-        <lastmod>2026-07-10</lastmod>
+        <lastmod>2026-07-11</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://aimtone.github.io/tentacolous/api/listeners.html"/>
         <xhtml:link rel="alternate" hreflang="es" href="https://aimtone.github.io/tentacolous/es/api/listeners.html"/>
     </url>
     <url>
         <loc>https://aimtone.github.io/tentacolous/concepts/configuration.html</loc>
-        <lastmod>2026-07-10</lastmod>
+        <lastmod>2026-07-11</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://aimtone.github.io/tentacolous/concepts/configuration.html"/>
         <xhtml:link rel="alternate" hreflang="es" href="https://aimtone.github.io/tentacolous/es/concepts/configuration.html"/>
     </url>
     <url>
         <loc>https://aimtone.github.io/tentacolous/concepts/entity-mapping.html</loc>
-        <lastmod>2026-07-10</lastmod>
+        <lastmod>2026-07-11</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://aimtone.github.io/tentacolous/concepts/entity-mapping.html"/>
         <xhtml:link rel="alternate" hreflang="es" href="https://aimtone.github.io/tentacolous/es/concepts/entity-mapping.html"/>
     </url>
     <url>
         <loc>https://aimtone.github.io/tentacolous/concepts/how-it-works.html</loc>
-        <lastmod>2026-07-10</lastmod>
+        <lastmod>2026-07-11</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://aimtone.github.io/tentacolous/concepts/how-it-works.html"/>
         <xhtml:link rel="alternate" hreflang="es" href="https://aimtone.github.io/tentacolous/es/concepts/how-it-works.html"/>
     </url>
     <url>
         <loc>https://aimtone.github.io/tentacolous/concepts/production.html</loc>
-        <lastmod>2026-07-10</lastmod>
+        <lastmod>2026-07-11</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://aimtone.github.io/tentacolous/concepts/production.html"/>
         <xhtml:link rel="alternate" hreflang="es" href="https://aimtone.github.io/tentacolous/es/concepts/production.html"/>
     </url>
     <url>
         <loc>https://aimtone.github.io/tentacolous/concepts/security.html</loc>
-        <lastmod>2026-07-10</lastmod>
+        <lastmod>2026-07-11</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://aimtone.github.io/tentacolous/concepts/security.html"/>
         <xhtml:link rel="alternate" hreflang="es" href="https://aimtone.github.io/tentacolous/es/concepts/security.html"/>
     </url>
     <url>
         <loc>https://aimtone.github.io/tentacolous/documentation/index.html</loc>
-        <lastmod>2026-07-10</lastmod>
+        <lastmod>2026-07-11</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://aimtone.github.io/tentacolous/documentation/index.html"/>
         <xhtml:link rel="alternate" hreflang="es" href="https://aimtone.github.io/tentacolous/es/documentation/index.html"/>
     </url>
     <url>
         <loc>https://aimtone.github.io/tentacolous/documentation/0.1.6/index.html</loc>
-        <lastmod>2026-07-10</lastmod>
+        <lastmod>2026-07-11</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://aimtone.github.io/tentacolous/documentation/0.1.6/index.html"/>
         <xhtml:link rel="alternate" hreflang="es" href="https://aimtone.github.io/tentacolous/es/documentation/0.1.6/index.html"/>
     </url>
     <url>
         <loc>https://aimtone.github.io/tentacolous/documentation/0.1.7/index.html</loc>
-        <lastmod>2026-07-10</lastmod>
+        <lastmod>2026-07-11</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://aimtone.github.io/tentacolous/documentation/0.1.7/index.html"/>
         <xhtml:link rel="alternate" hreflang="es" href="https://aimtone.github.io/tentacolous/es/documentation/0.1.7/index.html"/>
     </url>
     <url>
         <loc>https://aimtone.github.io/tentacolous/documentation/0.1.8/index.html</loc>
-        <lastmod>2026-07-10</lastmod>
+        <lastmod>2026-07-11</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://aimtone.github.io/tentacolous/documentation/0.1.8/index.html"/>
         <xhtml:link rel="alternate" hreflang="es" href="https://aimtone.github.io/tentacolous/es/documentation/0.1.8/index.html"/>
     </url>
     <url>
+        <loc>https://aimtone.github.io/tentacolous/documentation/0.2.0/index.html</loc>
+        <lastmod>2026-07-11</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aimtone.github.io/tentacolous/documentation/0.2.0/index.html"/>
+        <xhtml:link rel="alternate" hreflang="es" href="https://aimtone.github.io/tentacolous/es/documentation/0.2.0/index.html"/>
+    </url>
+    <url>
         <loc>https://aimtone.github.io/tentacolous/examples/manual-testing.html</loc>
-        <lastmod>2026-07-10</lastmod>
+        <lastmod>2026-07-11</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://aimtone.github.io/tentacolous/examples/manual-testing.html"/>
         <xhtml:link rel="alternate" hreflang="es" href="https://aimtone.github.io/tentacolous/es/examples/manual-testing.html"/>
     </url>
     <url>
         <loc>https://aimtone.github.io/tentacolous/examples/tests.html</loc>
-        <lastmod>2026-07-10</lastmod>
+        <lastmod>2026-07-11</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://aimtone.github.io/tentacolous/examples/tests.html"/>
         <xhtml:link rel="alternate" hreflang="es" href="https://aimtone.github.io/tentacolous/es/examples/tests.html"/>
     </url>
     <url>
         <loc>https://aimtone.github.io/tentacolous/getting-started/installation.html</loc>
-        <lastmod>2026-07-10</lastmod>
+        <lastmod>2026-07-11</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://aimtone.github.io/tentacolous/getting-started/installation.html"/>
         <xhtml:link rel="alternate" hreflang="es" href="https://aimtone.github.io/tentacolous/es/getting-started/installation.html"/>
     </url>
     <url>
         <loc>https://aimtone.github.io/tentacolous/getting-started/migration.html</loc>
-        <lastmod>2026-07-10</lastmod>
+        <lastmod>2026-07-11</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://aimtone.github.io/tentacolous/getting-started/migration.html"/>
         <xhtml:link rel="alternate" hreflang="es" href="https://aimtone.github.io/tentacolous/es/getting-started/migration.html"/>
     </url>
     <url>
         <loc>https://aimtone.github.io/tentacolous/getting-started/overview.html</loc>
-        <lastmod>2026-07-10</lastmod>
+        <lastmod>2026-07-11</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://aimtone.github.io/tentacolous/getting-started/overview.html"/>
         <xhtml:link rel="alternate" hreflang="es" href="https://aimtone.github.io/tentacolous/es/getting-started/overview.html"/>
     </url>
     <url>
         <loc>https://aimtone.github.io/tentacolous/getting-started/requirements.html</loc>
-        <lastmod>2026-07-10</lastmod>
+        <lastmod>2026-07-11</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://aimtone.github.io/tentacolous/getting-started/requirements.html"/>
         <xhtml:link rel="alternate" hreflang="es" href="https://aimtone.github.io/tentacolous/es/getting-started/requirements.html"/>
     </url>
     <url>
         <loc>https://aimtone.github.io/tentacolous/es/index.html</loc>
-        <lastmod>2026-07-10</lastmod>
+        <lastmod>2026-07-11</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://aimtone.github.io/tentacolous/es/index.html"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://aimtone.github.io/tentacolous/index.html"/>
     </url>
     <url>
         <loc>https://aimtone.github.io/tentacolous/es/changelog.html</loc>
-        <lastmod>2026-07-10</lastmod>
+        <lastmod>2026-07-11</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://aimtone.github.io/tentacolous/es/changelog.html"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://aimtone.github.io/tentacolous/changelog.html"/>
     </url>
     <url>
         <loc>https://aimtone.github.io/tentacolous/es/api/annotations.html</loc>
-        <lastmod>2026-07-10</lastmod>
+        <lastmod>2026-07-11</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://aimtone.github.io/tentacolous/es/api/annotations.html"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://aimtone.github.io/tentacolous/api/annotations.html"/>
     </url>
     <url>
         <loc>https://aimtone.github.io/tentacolous/es/api/custom-filters.html</loc>
-        <lastmod>2026-07-10</lastmod>
+        <lastmod>2026-07-11</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://aimtone.github.io/tentacolous/es/api/custom-filters.html"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://aimtone.github.io/tentacolous/api/custom-filters.html"/>
     </url>
     <url>
         <loc>https://aimtone.github.io/tentacolous/es/api/declarative-filters.html</loc>
-        <lastmod>2026-07-10</lastmod>
+        <lastmod>2026-07-11</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://aimtone.github.io/tentacolous/es/api/declarative-filters.html"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://aimtone.github.io/tentacolous/api/declarative-filters.html"/>
     </url>
     <url>
         <loc>https://aimtone.github.io/tentacolous/es/api/invalid-combinations.html</loc>
-        <lastmod>2026-07-10</lastmod>
+        <lastmod>2026-07-11</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://aimtone.github.io/tentacolous/es/api/invalid-combinations.html"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://aimtone.github.io/tentacolous/api/invalid-combinations.html"/>
     </url>
     <url>
         <loc>https://aimtone.github.io/tentacolous/es/api/listeners.html</loc>
-        <lastmod>2026-07-10</lastmod>
+        <lastmod>2026-07-11</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://aimtone.github.io/tentacolous/es/api/listeners.html"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://aimtone.github.io/tentacolous/api/listeners.html"/>
     </url>
     <url>
         <loc>https://aimtone.github.io/tentacolous/es/concepts/configuration.html</loc>
-        <lastmod>2026-07-10</lastmod>
+        <lastmod>2026-07-11</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://aimtone.github.io/tentacolous/es/concepts/configuration.html"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://aimtone.github.io/tentacolous/concepts/configuration.html"/>
     </url>
     <url>
         <loc>https://aimtone.github.io/tentacolous/es/concepts/entity-mapping.html</loc>
-        <lastmod>2026-07-10</lastmod>
+        <lastmod>2026-07-11</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://aimtone.github.io/tentacolous/es/concepts/entity-mapping.html"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://aimtone.github.io/tentacolous/concepts/entity-mapping.html"/>
     </url>
     <url>
         <loc>https://aimtone.github.io/tentacolous/es/concepts/how-it-works.html</loc>
-        <lastmod>2026-07-10</lastmod>
+        <lastmod>2026-07-11</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://aimtone.github.io/tentacolous/es/concepts/how-it-works.html"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://aimtone.github.io/tentacolous/concepts/how-it-works.html"/>
     </url>
     <url>
         <loc>https://aimtone.github.io/tentacolous/es/concepts/production.html</loc>
-        <lastmod>2026-07-10</lastmod>
+        <lastmod>2026-07-11</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://aimtone.github.io/tentacolous/es/concepts/production.html"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://aimtone.github.io/tentacolous/concepts/production.html"/>
     </url>
     <url>
         <loc>https://aimtone.github.io/tentacolous/es/concepts/security.html</loc>
-        <lastmod>2026-07-10</lastmod>
+        <lastmod>2026-07-11</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://aimtone.github.io/tentacolous/es/concepts/security.html"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://aimtone.github.io/tentacolous/concepts/security.html"/>
     </url>
     <url>
         <loc>https://aimtone.github.io/tentacolous/es/documentation/index.html</loc>
-        <lastmod>2026-07-10</lastmod>
+        <lastmod>2026-07-11</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://aimtone.github.io/tentacolous/es/documentation/index.html"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://aimtone.github.io/tentacolous/documentation/index.html"/>
     </url>
     <url>
         <loc>https://aimtone.github.io/tentacolous/es/documentation/0.1.6/index.html</loc>
-        <lastmod>2026-07-10</lastmod>
+        <lastmod>2026-07-11</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://aimtone.github.io/tentacolous/es/documentation/0.1.6/index.html"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://aimtone.github.io/tentacolous/documentation/0.1.6/index.html"/>
     </url>
     <url>
         <loc>https://aimtone.github.io/tentacolous/es/documentation/0.1.7/index.html</loc>
-        <lastmod>2026-07-10</lastmod>
+        <lastmod>2026-07-11</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://aimtone.github.io/tentacolous/es/documentation/0.1.7/index.html"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://aimtone.github.io/tentacolous/documentation/0.1.7/index.html"/>
     </url>
     <url>
         <loc>https://aimtone.github.io/tentacolous/es/documentation/0.1.8/index.html</loc>
-        <lastmod>2026-07-10</lastmod>
+        <lastmod>2026-07-11</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://aimtone.github.io/tentacolous/es/documentation/0.1.8/index.html"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://aimtone.github.io/tentacolous/documentation/0.1.8/index.html"/>
     </url>
     <url>
+        <loc>https://aimtone.github.io/tentacolous/es/documentation/0.2.0/index.html</loc>
+        <lastmod>2026-07-11</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="es" href="https://aimtone.github.io/tentacolous/es/documentation/0.2.0/index.html"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aimtone.github.io/tentacolous/documentation/0.2.0/index.html"/>
+    </url>
+    <url>
         <loc>https://aimtone.github.io/tentacolous/es/examples/manual-testing.html</loc>
-        <lastmod>2026-07-10</lastmod>
+        <lastmod>2026-07-11</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://aimtone.github.io/tentacolous/es/examples/manual-testing.html"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://aimtone.github.io/tentacolous/examples/manual-testing.html"/>
     </url>
     <url>
         <loc>https://aimtone.github.io/tentacolous/es/examples/tests.html</loc>
-        <lastmod>2026-07-10</lastmod>
+        <lastmod>2026-07-11</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://aimtone.github.io/tentacolous/es/examples/tests.html"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://aimtone.github.io/tentacolous/examples/tests.html"/>
     </url>
     <url>
         <loc>https://aimtone.github.io/tentacolous/es/getting-started/installation.html</loc>
-        <lastmod>2026-07-10</lastmod>
+        <lastmod>2026-07-11</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://aimtone.github.io/tentacolous/es/getting-started/installation.html"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://aimtone.github.io/tentacolous/getting-started/installation.html"/>
     </url>
     <url>
         <loc>https://aimtone.github.io/tentacolous/es/getting-started/migration.html</loc>
-        <lastmod>2026-07-10</lastmod>
+        <lastmod>2026-07-11</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://aimtone.github.io/tentacolous/es/getting-started/migration.html"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://aimtone.github.io/tentacolous/getting-started/migration.html"/>
     </url>
     <url>
         <loc>https://aimtone.github.io/tentacolous/es/getting-started/overview.html</loc>
-        <lastmod>2026-07-10</lastmod>
+        <lastmod>2026-07-11</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://aimtone.github.io/tentacolous/es/getting-started/overview.html"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://aimtone.github.io/tentacolous/getting-started/overview.html"/>
     </url>
     <url>
         <loc>https://aimtone.github.io/tentacolous/es/getting-started/requirements.html</loc>
-        <lastmod>2026-07-10</lastmod>
+        <lastmod>2026-07-11</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="es" href="https://aimtone.github.io/tentacolous/es/getting-started/requirements.html"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://aimtone.github.io/tentacolous/getting-started/requirements.html"/>

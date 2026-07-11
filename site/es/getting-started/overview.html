@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Listeners de cambios de PostgreSQL para Spring Boot">
+        <meta name="description" content="Listeners de cambios agnosticos a la base de datos para Spring Boot">
       
       
       
@@ -533,7 +533,7 @@
   <span class="md-ellipsis">
     
   
-    Migración desde 0.1.7
+    Migración a 0.2.0
   
 
     
@@ -1122,6 +1122,8 @@
       
         
       
+        
+      
     
     
     
@@ -1176,6 +1178,34 @@
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../documentation/0.2.0/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0.2.0
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
               
             
               
@@ -1356,9 +1386,9 @@
 <h2 id="overview">Resumen<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
 <p>Tentacolous es una libreria Spring Boot que ejecuta metodos Java cuando una tabla de base de datos recibe un <code>INSERT</code>, <code>UPDATE</code> o <code>DELETE</code>.</p>
 <p>La diferencia importante es que Tentacolous reacciona a los cambios de la base de datos sin importar donde se originen.</p>
-<p><strong>La version 0.1.8 se enfoca en filtros programaticos reutilizables.</strong> Un filtro puede revisar la entidad actual, la entidad anterior durante un update y la operacion antes de decidir si el listener debe ejecutarse. Funciona con la nueva anotacion generica <code>@TentacolousListener</code> y con las anotaciones existentes <code>@UponInserting</code>, <code>@UponUpdating</code> y <code>@UponDeleting</code>.</p>
+<p><strong>La version 0.2.0 añade ejecucion agnostica a la base de datos.</strong> La misma API de listeners y filtros funciona con PostgreSQL, MySQL, MariaDB, SQL Server, Oracle y SQLite mediante dialectos detectados automaticamente.</p>
 <p><strong>1.</strong> Crea una tabla de eventos.</p>
-<p><strong>2.</strong> Crea una funcion PostgreSQL.</p>
+<p><strong>2.</strong> Crea infraestructura de eventos y triggers especificos para el motor.</p>
 <p><strong>3.</strong> Crea triggers para las tablas que tienen listeners.</p>
 <p><strong>4.</strong> Los triggers escriben eventos en <code>db_change_event</code>.</p>
 <p><strong>5.</strong> Un poller Spring lee esos eventos.</p>

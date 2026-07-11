@@ -6,7 +6,7 @@ Tentacolous Documentation
 
 Everything you need to install, configure and operate Tentacolous in a Spring Boot project.
 
-Learn how to add the dependency, configure event processing and create Java listeners that react to real PostgreSQL changes through triggers, an event table and a Spring poller.
+Learn how to add the dependency, configure event processing, and create Java listeners that react to real changes in PostgreSQL, MySQL, MariaDB, SQL Server, Oracle, or SQLite.
 
 ## Overview {#overview}
 
@@ -14,11 +14,11 @@ Tentacolous is a Spring Boot library that runs Java methods when a database tabl
 
 The important difference is that Tentacolous reacts to database changes regardless of where they originate.
 
-**Version 0.1.8 focuses on reusable programmatic filters.** A filter can inspect the current entity, the previous entity during updates, and the operation before deciding whether the listener should run. This works with the new generic `@TentacolousListener` and with the existing `@UponInserting`, `@UponUpdating`, and `@UponDeleting` annotations.
+**Version 0.2.0 adds database-agnostic execution.** Tentacolous detects the JDBC product and selects database-specific table, trigger, JSON, pagination, and history behavior while preserving the existing listener and filter API.
 
 **1.** It creates an event table.
 
-**2.** It creates a PostgreSQL function.
+**2.** It creates database-specific trigger infrastructure.
 
 **3.** It creates triggers for tables that have listeners.
 
@@ -35,16 +35,16 @@ The important difference is that Tentacolous reacts to database changes regardle
 - Java 17 or higher.
 - Spring Boot.
 - A Spring Boot application with a configured `DataSource`.
-- PostgreSQL for automatic trigger creation.
+- PostgreSQL, MySQL, MariaDB, SQL Server, Oracle or SQLite, plus its JDBC driver.
 
-Automatic database infrastructure creation is currently implemented for PostgreSQL.
+Automatic database infrastructure is available for PostgreSQL, MySQL, MariaDB, SQL Server, Oracle, and SQLite.
 
 ## Dependency snippets {#dependency}
 
 ### Gradle
 
 ```groovy
-implementation 'io.github.aimtone:tentacolous:0.1.8'
+implementation 'io.github.aimtone:tentacolous:0.2.0'
 ```
 
 ### Maven
@@ -53,13 +53,13 @@ implementation 'io.github.aimtone:tentacolous:0.1.8'
 <dependency>
   <groupId>io.github.aimtone</groupId>
   <artifactId>tentacolous</artifactId>
-  <version>0.1.8</version>
+  <version>0.2.0</version>
 </dependency>
 ```
 
-## Migrating from 0.1.7 {#migration}
+## Migrating to 0.2.0 {#migration}
 
-Version `0.1.8` remains compatible with existing listeners. You do not need to replace `@UponInserting`, `@UponUpdating`, or `@UponDeleting`, and this release requires no database infrastructure changes.
+Version `0.2.0` remains compatible with existing listeners. PostgreSQL users do not need to replace annotations; other databases need their matching JDBC driver and trigger permissions when automatic schema management is enabled.
 
 - Use `@TentacolousListener` only when you prefer the generic annotation with `action`.
 - Custom filters are optional Spring beans extending `TentacolousFilter<T>`.
@@ -149,7 +149,7 @@ That is why the annotations do not have a `table` parameter: the selected entity
 
 ## Listeners and operations {#operations}
 
-Start with the operation-specific annotations. They remain fully supported in 0.1.8 and now also accept custom filters. The generic listener is explained afterward as an optional alternative.
+Start with the operation-specific annotations. They remain fully supported in 0.2.0 and now also accept custom filters. The generic listener is explained afterward as an optional alternative.
 
 ### UponInserting
 
@@ -487,7 +487,7 @@ value = "expected value"
 
 ## Custom filters {#custom-filters}
 
-Programmatic filtering is the main addition in `0.1.8`. Define the rule once in a reusable class and reference it from any listener annotation. The filter class must be a Spring bean.
+Programmatic filtering is the main addition in `0.2.0`. Define the rule once in a reusable class and reference it from any listener annotation. The filter class must be a Spring bean.
 
 ```java
 @Component

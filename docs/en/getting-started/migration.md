@@ -1,10 +1,12 @@
-## Migrating from 0.1.7 {#migration}
+## Migrating to 0.2.0 {#migration}
 
-Version `0.1.8` remains compatible with existing listeners. You do not need to replace `@UponInserting`, `@UponUpdating`, or `@UponDeleting`, and this release requires no database infrastructure changes.
+Version `0.2.0` keeps the listener API from `0.1.8` and adds database dialects. Existing PostgreSQL applications do not need to change their annotations or Tentacolous properties.
 
-- Use `@TentacolousListener` only when you prefer the generic annotation with `action`.
-- Custom filters are optional Spring beans extending `TentacolousFilter<T>`.
-- The filter generic type must be compatible with the listener entity.
-- If a custom filter is declared together with `field`, `valueType`, or `value`, the custom filter has priority and Tentacolous logs a warning.
-- Declarative filters must define `field`, `valueType`, and `value` together.
-- Each method may declare one listener annotation per operation.
+1. Update the dependency to `0.2.0`.
+2. Keep only the JDBC driver for the database used by the application.
+3. Ensure the database user can create tables and triggers when `schema-management` is `auto` or `create`.
+4. Run the application once in a non-production environment and validate INSERT, UPDATE, and DELETE listeners.
+
+Applications using `schema-management=none` remain responsible for installing database-specific event infrastructure manually.
+
+For SQLite, use a record key that is not reused during event-history retention. Prefer UUID or `INTEGER PRIMARY KEY AUTOINCREMENT` for business tables.

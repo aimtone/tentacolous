@@ -5,5 +5,5 @@
 - A Spring Boot application with a configured `DataSource`.
 - PostgreSQL, MySQL 8+, MariaDB, SQL Server 2016+, Oracle 19c+, or SQLite with JSON1, plus its JDBC driver.
 
-PostgreSQL is stable. The other full dialects are experimental until their end-to-end compatibility
-matrix has been validated against real servers and JDBC drivers.
+All listed dialects have passed the same end-to-end listener matrix. For SQLite, use a record key that
+is not reused during the event-history retention period, preferably `INTEGER PRIMARY KEY AUTOINCREMENT` or UUID.

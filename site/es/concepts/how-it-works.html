@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Listeners de cambios de PostgreSQL para Spring Boot">
+        <meta name="description" content="Listeners de cambios agnosticos a la base de datos para Spring Boot">
       
       
       
@@ -479,7 +479,7 @@
   <span class="md-ellipsis">
     
   
-    Migración desde 0.1.7
+    Migración a 0.2.0
   
 
     
@@ -1122,6 +1122,8 @@
       
         
       
+        
+      
     
     
     
@@ -1176,6 +1178,34 @@
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../documentation/0.2.0/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0.2.0
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
               
             
               
@@ -1355,7 +1385,7 @@
 
 <h2 id="internals">Como funciona internamente<a class="headerlink" href="#internals" title="Permanent link">&para;</a></h2>
 <p>Tentacolous no usa eventos JPA. Esto es intencional: los eventos JPA solo funcionan cuando el cambio pasa por la misma aplicacion. Tentacolous esta disenado para detectar cambios reales de base de datos, incluso cuando vienen desde fuera de tu aplicacion.</p>
-<p>En PostgreSQL, Tentacolous crea:</p>
+<p>Para la base de datos detectada, Tentacolous crea:</p>
 <ul>
 <li>Una tabla <code>db_change_event</code>.</li>
 <li>Una funcion <code>db_change_event_notify_change()</code>.</li>

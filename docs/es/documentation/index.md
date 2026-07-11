@@ -6,7 +6,7 @@ Documentacion de Tentacolous
 
 Todo lo necesario para instalar, configurar y operar Tentacolous en un proyecto Spring Boot.
 
-Aprende como agregar la dependencia, configurar el procesamiento de eventos y crear listeners Java que reaccionan a cambios reales en PostgreSQL mediante triggers, una tabla de eventos y un poller Spring.
+Aprende como agregar la dependencia, configurar eventos y crear listeners Java que reaccionan a cambios reales en PostgreSQL, MySQL, MariaDB, SQL Server, Oracle o SQLite.
 
 ## Resumen {#overview}
 
@@ -14,11 +14,11 @@ Tentacolous es una libreria Spring Boot que ejecuta metodos Java cuando una tabl
 
 La diferencia importante es que Tentacolous reacciona a los cambios de la base de datos sin importar donde se originen.
 
-**La version 0.1.8 se enfoca en filtros programaticos reutilizables.** Un filtro puede revisar la entidad actual, la entidad anterior durante un update y la operacion antes de decidir si el listener debe ejecutarse. Funciona con la nueva anotacion generica `@TentacolousListener` y con las anotaciones existentes `@UponInserting`, `@UponUpdating` y `@UponDeleting`.
+**La version 0.2.0 añade ejecucion agnostica a la base de datos.** Tentacolous detecta el producto JDBC y selecciona el comportamiento especifico de tablas, triggers, JSON, paginacion e historial, conservando la API existente de listeners y filtros.
 
 **1.** Crea una tabla de eventos.
 
-**2.** Crea una funcion PostgreSQL.
+**2.** Crea infraestructura de triggers especifica para el motor.
 
 **3.** Crea triggers para las tablas que tienen listeners.
 
@@ -35,16 +35,16 @@ La diferencia importante es que Tentacolous reacciona a los cambios de la base d
 - Java 17 o superior.
 - Spring Boot.
 - Una aplicacion Spring Boot con un `DataSource` configurado.
-- PostgreSQL para la creacion automatica de triggers.
+- PostgreSQL, MySQL, MariaDB, SQL Server, Oracle o SQLite, junto con su driver JDBC.
 
-La creacion automatica de infraestructura de base de datos esta implementada actualmente para PostgreSQL.
+La infraestructura automatica esta disponible para PostgreSQL, MySQL, MariaDB, SQL Server, Oracle y SQLite.
 
 ## Snippets de dependencias {#dependency}
 
 ### Gradle
 
 ```groovy
-implementation 'io.github.aimtone:tentacolous:0.1.8'
+implementation 'io.github.aimtone:tentacolous:0.2.0'
 ```
 
 ### Maven
@@ -53,13 +53,13 @@ implementation 'io.github.aimtone:tentacolous:0.1.8'
 <dependency>
   <groupId>io.github.aimtone</groupId>
   <artifactId>tentacolous</artifactId>
-  <version>0.1.8</version>
+  <version>0.2.0</version>
 </dependency>
 ```
 
-## Migracion desde 0.1.7 {#migration}
+## Migracion a 0.2.0 {#migration}
 
-La version `0.1.8` mantiene compatibilidad con los listeners existentes. No necesitas reemplazar `@UponInserting`, `@UponUpdating` ni `@UponDeleting`, y esta version no requiere cambios en la infraestructura de base de datos.
+La version `0.2.0` mantiene compatibilidad con los listeners existentes. Los usuarios PostgreSQL no necesitan cambiar anotaciones; los demas motores requieren su driver JDBC y permisos de triggers cuando la gestion automatica esta habilitada.
 
 - Usa `@TentacolousListener` solo si prefieres la anotacion generica con `action`.
 - Los filtros personalizados son beans opcionales de Spring que extienden `TentacolousFilter<T>`.
@@ -149,7 +149,7 @@ Por eso las anotaciones no tienen un parametro `table`: la entidad seleccionada 
 
 ## Listeners y operaciones {#operations}
 
-Comienza con las anotaciones especificas por operacion. Siguen completamente disponibles en 0.1.8 y ahora tambien aceptan filtros personalizados. El listener generico se explica despues como una alternativa opcional.
+Comienza con las anotaciones especificas por operacion. Siguen completamente disponibles en 0.2.0 y ahora tambien aceptan filtros personalizados. El listener generico se explica despues como una alternativa opcional.
 
 ### UponInserting
 
@@ -487,7 +487,7 @@ value = "expected value"
 
 ## Filtros personalizados {#custom-filters}
 
-El filtro programatico es la novedad principal de `0.1.8`. Define la regla una vez en una clase reutilizable y usala desde cualquier anotacion de listener. La clase del filtro debe ser un bean de Spring.
+El filtro programatico es la novedad principal de `0.2.0`. Define la regla una vez en una clase reutilizable y usala desde cualquier anotacion de listener. La clase del filtro debe ser un bean de Spring.
 
 ```java
 @Component

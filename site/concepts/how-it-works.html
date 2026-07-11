@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="PostgreSQL database change listeners for Spring Boot">
+        <meta name="description" content="Database-agnostic change listeners for Spring Boot">
       
       
       
@@ -479,7 +479,7 @@
   <span class="md-ellipsis">
     
   
-    Migration from 0.1.7
+    Migration to 0.2.0
   
 
     
@@ -1122,6 +1122,8 @@
       
         
       
+        
+      
     
     
     
@@ -1176,6 +1178,34 @@
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../documentation/0.2.0/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0.2.0
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
               
             
               
@@ -1355,7 +1385,7 @@
 
 <h2 id="internals">How it works internally<a class="headerlink" href="#internals" title="Permanent link">&para;</a></h2>
 <p>Tentacolous does not use JPA events. This is intentional: JPA events only work when the change goes through the same application. Tentacolous is designed to detect real database changes, even when they come from outside your application.</p>
-<p>In PostgreSQL, Tentacolous creates:</p>
+<p>For the detected database, Tentacolous creates:</p>
 <ul>
 <li>A <code>db_change_event</code> table.</li>
 <li>A <code>db_change_event_notify_change()</code> function.</li>

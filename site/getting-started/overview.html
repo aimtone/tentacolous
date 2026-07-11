@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="PostgreSQL database change listeners for Spring Boot">
+        <meta name="description" content="Database-agnostic change listeners for Spring Boot">
       
       
       
@@ -533,7 +533,7 @@
   <span class="md-ellipsis">
     
   
-    Migration from 0.1.7
+    Migration to 0.2.0
   
 
     
@@ -1122,6 +1122,8 @@
       
         
       
+        
+      
     
     
     
@@ -1176,6 +1178,34 @@
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../documentation/0.2.0/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    0.2.0
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
               
             
               
@@ -1356,9 +1386,9 @@
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
 <p>Tentacolous is a Spring Boot library that runs Java methods when a database table receives an <code>INSERT</code>, <code>UPDATE</code>, or <code>DELETE</code>.</p>
 <p>The important difference is that Tentacolous reacts to database changes regardless of where they originate.</p>
-<p><strong>Version 0.1.8 focuses on reusable programmatic filters.</strong> A filter can inspect the current entity, the previous entity during updates, and the operation before deciding whether the listener should run. This works with the new generic <code>@TentacolousListener</code> and with the existing <code>@UponInserting</code>, <code>@UponUpdating</code>, and <code>@UponDeleting</code> annotations.</p>
+<p><strong>Version 0.2.0 adds database-agnostic execution.</strong> The same listener and filter API now works with PostgreSQL, MySQL, MariaDB, SQL Server, Oracle, and SQLite through automatically detected dialects.</p>
 <p><strong>1.</strong> It creates an event table.</p>
-<p><strong>2.</strong> It creates a PostgreSQL function.</p>
+<p><strong>2.</strong> It creates database-specific event infrastructure and triggers.</p>
 <p><strong>3.</strong> It creates triggers for tables that have listeners.</p>
 <p><strong>4.</strong> The triggers write events into <code>db_change_event</code>.</p>
 <p><strong>5.</strong> A Spring poller reads those events.</p>

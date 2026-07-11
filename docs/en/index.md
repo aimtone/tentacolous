@@ -1,8 +1,8 @@
-Spring Boot + PostgreSQL
+Spring Boot + six SQL databases
 
 # Tentacolous {#top}
 
-Run Java code when someone inserts, updates or deletes data in PostgreSQL, even if the change comes from another application, a SQL script or a legacy system.
+Run Java code when someone inserts, updates or deletes data in PostgreSQL, MySQL, MariaDB, SQL Server, Oracle, or SQLite—even when the change comes from another application, a SQL script, or a legacy system.
 
 Stop constantly polling the database or coupling your whole application to JPA. Tentacolous detects real changes through triggers and runs annotated Java methods in a simple, fast and reliable way.
 
@@ -21,7 +21,7 @@ public void onPersonInserted(Person person) {
 
 Essentials
 
-## Connect PostgreSQL changes with your Java code. {#features}
+## Connect database changes with your Java code. {#features}
 
 Tentacolous detects real changes in your database and automatically runs the code you define. It does not matter if the change comes from your application, another API, a SQL script or a legacy system.
 
@@ -35,13 +35,13 @@ Annotate a method with `@UponInserting`, `@UponUpdating` or `@UponDeleting` and 
 
 ### Works reliably
 
-Tentacolous uses PostgreSQL triggers, an event table and a configurable processor to ensure each change is detected and processed correctly.
+Tentacolous uses database-specific triggers, an event table, and a configurable processor to ensure each change is detected and processed correctly.
 
 Quick start
 
 ## Start in less than 5 minutes. {#start}
 
-Just add the dependency, configure Tentacolous and start reacting to PostgreSQL changes with Java.
+Add the dependency and JDBC driver, configure Tentacolous, and start reacting to database changes with Java.
 
 1. Add the dependencyMaven Central
 
@@ -52,12 +52,12 @@ Gradle
 <dependency>
   <groupId>io.github.aimtone</groupId>
   <artifactId>tentacolous</artifactId>
-  <version>0.1.8</version>
+  <version>0.2.0</version>
 </dependency>
 ```
 
 ```groovy
-implementation 'io.github.aimtone:tentacolous:0.1.8'
+implementation 'io.github.aimtone:tentacolous:0.2.0'
 ```
 
 2. Add propertiesSpring config

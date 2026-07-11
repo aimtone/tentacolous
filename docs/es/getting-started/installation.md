@@ -3,7 +3,7 @@
 ### Gradle
 
 ```groovy
-implementation 'io.github.aimtone:tentacolous:0.1.8'
+implementation 'io.github.aimtone:tentacolous:0.2.0'
 ```
 
 ### Maven
@@ -12,6 +12,6 @@ implementation 'io.github.aimtone:tentacolous:0.1.8'
 <dependency>
   <groupId>io.github.aimtone</groupId>
   <artifactId>tentacolous</artifactId>
-  <version>0.1.8</version>
+  <version>0.2.0</version>
 </dependency>
 ```

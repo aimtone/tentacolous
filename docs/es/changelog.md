@@ -4,6 +4,26 @@ Todos los cambios importantes de Tentacolous se documentan en esta página.
 
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/).
 
+## 0.2.0 — 2026-07-11
+
+### Añadido
+
+- Se añadió detección automática de dialecto e infraestructura específica para PostgreSQL, MySQL, MariaDB, SQL Server, Oracle y SQLite.
+- Se añadió polling, historial, generación de payload JSON, IDs generados y booleanos portables mediante el contrato de dialectos.
+
+### Corregido
+
+- Se eliminó SQL exclusivo de PostgreSQL de las rutas comunes de polling e historial.
+- Se normalizaron las claves JSON de Oracle para deserializar payloads a propiedades Java convencionales.
+
+### Validación
+
+- Los seis dialectos superaron una matriz de extremo a extremo con 28 listeners: INSERT, UPDATE, DELETE, `@TentacolousListener`, filtros declarativos y personalizados, orden, exclusiones, entidad anterior e historial como lista y arreglo.
+
+### Consideraciones
+
+- En SQLite, las claves de registro no deben reutilizarse durante la retención del historial. Usa `INTEGER PRIMARY KEY AUTOINCREMENT` o UUID en las tablas de negocio.
+
 ## 0.1.8 — 2026-07-10
 
 ### Añadido

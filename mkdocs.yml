@@ -1,5 +1,5 @@
 site_name: Tentacolous
-site_description: PostgreSQL database change listeners for Spring Boot
+site_description: Database-agnostic change listeners for Spring Boot
 site_url: https://aimtone.github.io/tentacolous/
 repo_url: https://github.com/aimtone/tentacolous
 repo_name: aimtone/tentacolous
@@ -53,14 +53,14 @@ plugins:
         - locale: es
           name: Español
           build: true
-          site_description: Listeners de cambios de PostgreSQL para Spring Boot
+          site_description: Listeners de cambios agnosticos a la base de datos para Spring Boot
           nav:
             - Inicio: index.md
             - Primeros pasos:
                 - Resumen: getting-started/overview.md
                 - Requisitos: getting-started/requirements.md
                 - Instalación: getting-started/installation.md
-                - Migración desde 0.1.7: getting-started/migration.md
+                - Migración a 0.2.0: getting-started/migration.md
             - Conceptos:
                 - Configuración: concepts/configuration.md
                 - Mapeo de entidades: concepts/entity-mapping.md
@@ -78,6 +78,7 @@ plugins:
                 - Tests: examples/tests.md
             - Archivo de versiones:
                 - Versión actual: documentation/index.md
+                - 0.2.0: documentation/0.2.0/index.md
                 - 0.1.8: documentation/0.1.8/index.md
                 - 0.1.7: documentation/0.1.7/index.md
                 - 0.1.6: documentation/0.1.6/index.md
@@ -118,7 +119,7 @@ nav:
       - Overview: getting-started/overview.md
       - Requirements: getting-started/requirements.md
       - Installation: getting-started/installation.md
-      - Migration from 0.1.7: getting-started/migration.md
+      - Migration to 0.2.0: getting-started/migration.md
   - Concepts:
       - Configuration: concepts/configuration.md
       - Entity mapping: concepts/entity-mapping.md
@@ -136,6 +137,7 @@ nav:
       - Tests: examples/tests.md
   - Version archive:
       - Current alias: documentation/index.md
+      - 0.2.0: documentation/0.2.0/index.md
       - 0.1.8: documentation/0.1.8/index.md
       - 0.1.7: documentation/0.1.7/index.md
       - 0.1.6: documentation/0.1.6/index.md

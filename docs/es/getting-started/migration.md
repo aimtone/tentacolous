@@ -1,10 +1,12 @@
-## Migracion desde 0.1.7 {#migration}
+## Migracion a 0.2.0 {#migration}
 
-La version `0.1.8` mantiene compatibilidad con los listeners existentes. No necesitas reemplazar `@UponInserting`, `@UponUpdating` ni `@UponDeleting`, y esta version no requiere cambios en la infraestructura de base de datos.
+La version `0.2.0` conserva la API de listeners de `0.1.8` y añade dialectos de base de datos. Las aplicaciones PostgreSQL existentes no necesitan cambiar anotaciones ni properties de Tentacolous.
 
-- Usa `@TentacolousListener` solo si prefieres la anotacion generica con `action`.
-- Los filtros personalizados son beans opcionales de Spring que extienden `TentacolousFilter<T>`.
-- El tipo generico del filtro debe ser compatible con la entidad del listener.
-- Si un filtro personalizado se declara junto con `field`, `valueType` o `value`, el filtro personalizado tiene prioridad y Tentacolous escribe un warning.
-- Los filtros declarativos deben definir `field`, `valueType` y `value` juntos.
-- Cada metodo puede declarar una anotacion listener por operacion.
+1. Actualiza la dependencia a `0.2.0`.
+2. Conserva solamente el driver JDBC de la base utilizada por la aplicacion.
+3. Verifica que el usuario tenga permisos para crear tablas y triggers cuando `schema-management` sea `auto` o `create`.
+4. Ejecuta la aplicacion en un ambiente no productivo y valida listeners INSERT, UPDATE y DELETE.
+
+Las aplicaciones con `schema-management=none` siguen siendo responsables de instalar manualmente la infraestructura especifica para su motor.
+
+En SQLite, usa una clave que no se reutilice durante la retencion del historial. Prefiere UUID o `INTEGER PRIMARY KEY AUTOINCREMENT` en las tablas de negocio.
