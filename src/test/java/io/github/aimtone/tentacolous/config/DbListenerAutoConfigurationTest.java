@@ -58,6 +58,7 @@ class DbListenerAutoConfigurationTest {
         contextRunner
                 .withBean(JdbcTemplate.class, () -> jdbcTemplate)
                 .withBean(DataSource.class, () -> mock(DataSource.class))
+                .withBean("dbListenerTaskScheduler", TaskScheduler.class, () -> mock(TaskScheduler.class))
                 .withPropertyValues("tentacolous.schema-management=none")
                 .run(context -> {
                     assertThat(context).hasSingleBean(DbListenerSchemaManager.class);

@@ -34,7 +34,7 @@ But what if another system, a script, or even a database console user modifies t
 ## What makes Tentacolous different?
 
 - **Detects external changes**: Reacts whether the modification comes from your API, another application, an SQL script, or a database console.
-- **Automatic infrastructure**: Creates PostgreSQL functions, triggers, and the internal event table automatically.
+- **Automatic infrastructure**: Creates database-specific triggers and the internal event table automatically.
 - **Transparent integration**: Converts the database event payload into your Java entity and invokes the corresponding annotated method.
 - **Flexible listeners**: Receive the current entity, the previous entity, or a simple history when you need it.
 - **Flexible configuration**: Configure polling interval, batch size, retry attempts, event table name, and more.
@@ -43,7 +43,21 @@ But what if another system, a script, or even a database console user modifies t
 
 - Java 17+
 - Spring Boot application with a configured `DataSource`
-- PostgreSQL for automatic trigger generation
+- A supported database and its JDBC driver
+
+Database support:
+
+| Database | Automatic infrastructure | Payload/old payload | History | Status |
+|---|---:|---:|---:|---|
+| PostgreSQL | Yes | Yes | Yes | Stable |
+| MySQL 8+ | Yes | Yes | Yes | Experimental |
+| MariaDB | Yes | Yes | Yes | Experimental |
+| SQL Server 2016+ | Yes | Yes | Yes | Experimental |
+| Oracle 19c+ | Yes | Yes | Yes | Experimental |
+| SQLite with JSON1 | Yes | Yes | Yes | Experimental |
+
+`Experimental` means that the dialect implements the complete Tentacolous contract but still needs
+end-to-end validation against the supported server and JDBC-driver versions before being declared stable.
 
 ## Quick Example
 

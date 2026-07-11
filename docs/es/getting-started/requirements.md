@@ -3,6 +3,7 @@
 - Java 17 o superior.
 - Spring Boot.
 - Una aplicacion Spring Boot con un `DataSource` configurado.
-- PostgreSQL para la creacion automatica de triggers.
+- PostgreSQL, MySQL 8+, MariaDB, SQL Server 2016+, Oracle 19c+ o SQLite con JSON1, junto con su driver JDBC.
 
-La creacion automatica de infraestructura de base de datos esta implementada actualmente para PostgreSQL.
+PostgreSQL es estable. Los demas dialectos completos son experimentales hasta validar su matriz de
+compatibilidad de extremo a extremo contra servidores y drivers JDBC reales.

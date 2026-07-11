@@ -3,7 +3,7 @@
    <modelVersion>4.0.0</modelVersion>
    <groupId>io.github.aimtone</groupId>
    <artifactId>tentacolous</artifactId>
-   <version>0.1.8</version>
+   <version>0.2.0</version>
    <packaging>jar</packaging>
    <name>Tentacolous</name>
    <description>Tentacolous</description>
@@ -112,6 +112,9 @@
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-javadoc-plugin</artifactId>
             <version>3.11.2</version>
+            <configuration>
+               <doclint>all,-missing</doclint>
+            </configuration>
             <executions>
                <execution>
                   <id>attach-javadocs</id>

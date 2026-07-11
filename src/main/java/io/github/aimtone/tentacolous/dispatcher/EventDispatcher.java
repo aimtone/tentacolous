@@ -9,6 +9,8 @@ import io.github.aimtone.tentacolous.filter.TentacolousFilter;
 import io.github.aimtone.tentacolous.filter.TentacolousFilterContext;
 import io.github.aimtone.tentacolous.registry.ListenerDefinition;
 import io.github.aimtone.tentacolous.registry.ListenerRegistry;
+import io.github.aimtone.tentacolous.schema.DatabaseDialectResolver;
+import io.github.aimtone.tentacolous.schema.PostgreSqlDialect;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -35,9 +37,10 @@ public class EventDispatcher {
     private final ObjectMapper objectMapper;
     private final JdbcTemplate jdbcTemplate;
     private final DbListenerProperties properties;
+    private final DatabaseDialectResolver dialectResolver;
 
     public EventDispatcher(ListenerRegistry listenerRegistry, ObjectMapper objectMapper) {
-        this(listenerRegistry, objectMapper, null, null);
+        this(listenerRegistry, objectMapper, null, null, null);
     }
 
     public EventDispatcher(
@@ -46,10 +49,22 @@ public class EventDispatcher {
             JdbcTemplate jdbcTemplate,
             DbListenerProperties properties
     ) {
+        this(listenerRegistry, objectMapper, jdbcTemplate, properties,
+                jdbcTemplate == null ? null : new DatabaseDialectResolver(new PostgreSqlDialect()));
+    }
+
+    public EventDispatcher(
+            ListenerRegistry listenerRegistry,
+            ObjectMapper objectMapper,
+            JdbcTemplate jdbcTemplate,
+            DbListenerProperties properties,
+            DatabaseDialectResolver dialectResolver
+    ) {
         this.listenerRegistry = listenerRegistry;
         this.objectMapper = objectMapper;
         this.jdbcTemplate = jdbcTemplate;
         this.properties = properties;
+        this.dialectResolver = dialectResolver;
     }
 
     public void dispatchInsert(DbChangeEvent event, Class<?> entityClass) {
@@ -249,7 +264,7 @@ public class EventDispatcher {
     }
 
     private List<Object> readHistoryEntities(DbChangeEvent event, ListenerDefinition listener) {
-        if (jdbcTemplate == null || properties == null) {
+        if (jdbcTemplate == null || properties == null || dialectResolver == null) {
             return Collections.emptyList();
         }
 
@@ -269,19 +284,12 @@ public class EventDispatcher {
             throw new IllegalArgumentException("Invalid tentacolous.event-table: " + eventTable);
         }
 
+        var dialect = dialectResolver.resolve();
         List<String> payloads = jdbcTemplate.query(
-                "SELECT payload FROM " + eventTable
-                        + " WHERE entity_name = ? "
-                        + "AND id < ? "
-                        + "AND operation IN ('INSERT', 'UPDATE') "
-                        + "AND (record_key = ? OR (record_key IS NULL AND payload::jsonb ->> ? = ?)) "
-                        + "ORDER BY id",
+                dialect.selectHistorySql(eventTable),
                 (rs, rowNum) -> rs.getString("payload"),
-                event.getEntityName(),
-                event.getId(),
-                recordKey,
-                listener.getRecordKeyField(),
-                recordKey
+                dialect.selectHistoryArguments(event.getEntityName(), event.getId(), recordKey,
+                        listener.getRecordKeyField())
         );
 
         List<Object> history = new ArrayList<>(payloads.size());

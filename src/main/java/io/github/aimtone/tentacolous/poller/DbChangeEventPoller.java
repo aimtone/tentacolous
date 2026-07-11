@@ -6,6 +6,9 @@ import io.github.aimtone.tentacolous.model.DbChangeEvent;
 import io.github.aimtone.tentacolous.model.DbOperation;
 import io.github.aimtone.tentacolous.registry.ListenerRegistry;
 import io.github.aimtone.tentacolous.schema.DbListenerSchemaManager;
+import io.github.aimtone.tentacolous.schema.DatabaseDialect;
+import io.github.aimtone.tentacolous.schema.DatabaseDialectResolver;
+import io.github.aimtone.tentacolous.schema.PostgreSqlDialect;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.SmartLifecycle;
@@ -31,6 +34,7 @@ public class DbChangeEventPoller implements SmartLifecycle {
     private final DbListenerProperties properties;
     private final DbListenerSchemaManager schemaManager;
     private final TaskScheduler taskScheduler;
+    private final DatabaseDialectResolver dialectResolver;
     private final AtomicBoolean running = new AtomicBoolean(false);
     private ScheduledFuture<?> scheduledTask;
 
@@ -42,12 +46,26 @@ public class DbChangeEventPoller implements SmartLifecycle {
             DbListenerSchemaManager schemaManager,
             TaskScheduler taskScheduler
     ) {
+        this(jdbcTemplate, eventDispatcher, listenerRegistry, properties, schemaManager, taskScheduler,
+                new DatabaseDialectResolver(new PostgreSqlDialect()));
+    }
+
+    public DbChangeEventPoller(
+            JdbcTemplate jdbcTemplate,
+            EventDispatcher eventDispatcher,
+            ListenerRegistry listenerRegistry,
+            DbListenerProperties properties,
+            DbListenerSchemaManager schemaManager,
+            TaskScheduler taskScheduler,
+            DatabaseDialectResolver dialectResolver
+    ) {
         this.jdbcTemplate = jdbcTemplate;
         this.eventDispatcher = eventDispatcher;
         this.listenerRegistry = listenerRegistry;
         this.properties = properties;
         this.schemaManager = schemaManager;
         this.taskScheduler = taskScheduler;
+        this.dialectResolver = dialectResolver;
     }
 
     @Override
@@ -142,8 +160,8 @@ public class DbChangeEventPoller implements SmartLifecycle {
     }
 
     private String selectSql() {
-        return "SELECT id, entity_name, operation, payload, old_payload, record_key FROM " + properties.getEventTable()
-                + " WHERE status = 'PENDING' ORDER BY id LIMIT ?";
+        DatabaseDialect dialect = dialectResolver.resolve();
+        return dialect.selectPendingEventsSql(properties.getEventTable());
     }
 
     private boolean claimEvent(Long eventId) {
@@ -158,9 +176,11 @@ public class DbChangeEventPoller implements SmartLifecycle {
     }
 
     private void markProcessed(Long eventId) {
+        String trueLiteral = dialectResolver.resolve().trueLiteral();
         jdbcTemplate.update(
                 "UPDATE " + properties.getEventTable()
-                        + " SET status = 'PROCESSED', processed = true, processed_at = CURRENT_TIMESTAMP WHERE id = ?",
+                        + " SET status = 'PROCESSED', processed = " + trueLiteral
+                        + ", processed_at = CURRENT_TIMESTAMP WHERE id = ?",
                 eventId
         );
     }

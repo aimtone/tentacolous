@@ -92,6 +92,19 @@ public class PostgreSqlDialect implements DatabaseDialect {
                 + escapeLiteral(listener.getRecordKeyField()) + "')");
     }
 
+    @Override
+    public String selectPendingEventsSql(String eventTable) {
+        return "SELECT id, entity_name, operation, payload, old_payload, record_key FROM " + eventTable
+                + " WHERE status = 'PENDING' ORDER BY id LIMIT ?";
+    }
+
+    @Override
+    public String selectHistorySql(String eventTable) {
+        return "SELECT payload FROM " + eventTable
+                + " WHERE entity_name = ? AND id < ? AND operation IN ('INSERT', 'UPDATE') "
+                + "AND (record_key = ? OR (record_key IS NULL AND payload::jsonb ->> ? = ?)) ORDER BY id";
+    }
+
     private static String functionName(String eventTable) {
         return sanitizeIdentifier(eventTable) + "_notify_change";
     }

@@ -8,9 +8,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -24,7 +21,7 @@ public class DbListenerSchemaManager {
     private final JdbcTemplate jdbcTemplate;
     private final ListenerRegistry listenerRegistry;
     private final DbListenerProperties properties;
-    private final List<DatabaseDialect> dialects;
+    private final DatabaseDialectResolver dialectResolver;
 
     private boolean initialized;
 
@@ -33,7 +30,8 @@ public class DbListenerSchemaManager {
             ListenerRegistry listenerRegistry,
             DbListenerProperties properties
     ) {
-        this(jdbcTemplate, listenerRegistry, properties, List.of(new PostgreSqlDialect()));
+        this(jdbcTemplate, listenerRegistry, properties,
+                new DatabaseDialectResolver(jdbcTemplate, List.of(new PostgreSqlDialect())));
     }
 
     public DbListenerSchemaManager(
@@ -42,10 +40,19 @@ public class DbListenerSchemaManager {
             DbListenerProperties properties,
             List<DatabaseDialect> dialects
     ) {
+        this(jdbcTemplate, listenerRegistry, properties, new DatabaseDialectResolver(jdbcTemplate, dialects));
+    }
+
+    public DbListenerSchemaManager(
+            JdbcTemplate jdbcTemplate,
+            ListenerRegistry listenerRegistry,
+            DbListenerProperties properties,
+            DatabaseDialectResolver dialectResolver
+    ) {
         this.jdbcTemplate = jdbcTemplate;
         this.listenerRegistry = listenerRegistry;
         this.properties = properties;
-        this.dialects = dialects;
+        this.dialectResolver = dialectResolver;
     }
 
     public synchronized void initialize() {
@@ -121,31 +128,7 @@ public class DbListenerSchemaManager {
     }
 
     private DatabaseDialect resolveDialect() {
-        String productName = getDatabaseProductName();
-
-        for (DatabaseDialect dialect : dialects) {
-            if (dialect.supports(productName)) {
-                log.info("Using Tentacolous dialect for {}", productName);
-                return dialect;
-            }
-        }
-
-        throw new IllegalStateException(
-                "Tentacolous cannot auto-create triggers for database '" + productName
-                        + "'. Set tentacolous.schema-management=none and provide your own infrastructure, "
-                        + "or add a DatabaseDialect for this database."
-        );
-    }
-
-    private String getDatabaseProductName() {
-        return jdbcTemplate.execute((Connection connection) -> {
-            try {
-                DatabaseMetaData metaData = connection.getMetaData();
-                return metaData.getDatabaseProductName();
-            } catch (SQLException e) {
-                throw new IllegalStateException("Cannot read database product name", e);
-            }
-        });
+        return dialectResolver.resolve();
     }
 
     private void validateIdentifier(String identifier, String name) {
