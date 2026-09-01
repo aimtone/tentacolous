@@ -32,6 +32,25 @@ spring:
 | `tentacolous.batch-size` | `100` | Numero maximo de eventos leidos por ciclo. |
 | `tentacolous.max-attempts` | `3` | Limite de reintentos antes de marcar un evento como `FAILED`. |
 
+### Sinks para colas de mensajes
+
+Estas propiedades solo se leen cuando la dependencia de Spring correspondiente esta en el classpath. Guia completa: [Colas de mensajes](message-brokers.md).
+
+| Propiedad | Valor por defecto | Que hace |
+| --- | --- | --- |
+| `tentacolous.kafka.enabled` | `false` | Publica cada cambio en Kafka. |
+| `tentacolous.kafka.topic` | *(vacio)* | Topic fijo. Si esta vacio, el topic es `topic-prefix` + nombre de entidad. |
+| `tentacolous.kafka.topic-prefix` | *(vacio)* | Prefijo del topic por entidad, p. ej. `cdc.`. |
+| `tentacolous.kafka.format` | `envelope` | `envelope` (antes/despues + metadata) o `raw` (payload de la fila). |
+| `tentacolous.kafka.add-headers` | `true` | Agrega headers `tentacolous-*`. |
+| `tentacolous.kafka.send-timeout` | `10s` | Espera del acuse del broker antes de fallar el evento. |
+| `tentacolous.rabbitmq.enabled` | `false` | Publica cada cambio en RabbitMQ. |
+| `tentacolous.rabbitmq.exchange` | `tentacolous` | Topic exchange donde publicar. |
+| `tentacolous.rabbitmq.routing-key-prefix` | *(vacio)* | Prefijo de la routing key `entity.operation`. |
+| `tentacolous.rabbitmq.format` | `envelope` | `envelope` o `raw`. |
+| `tentacolous.rabbitmq.declare-exchange` | `true` | Declara el topic exchange durable al arrancar. |
+| `tentacolous.rabbitmq.add-headers` | `true` | Agrega headers `tentacolous-*`. |
+
 ### Modos de schema management
 
 | Modo | Uso comun | Comportamiento |

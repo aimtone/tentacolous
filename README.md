@@ -16,6 +16,7 @@
 - [Generic Listener](#generic-listener)
 - [Custom Filters](#custom-filters)
 - [Listener Ordering](#listener-ordering)
+- [Kafka and RabbitMQ](#kafka-and-rabbitmq)
 - [Migrating to 0.2.0](#migrating-to-020)
 - [Installation](#installation)
 - [Configuration](#configuration)
@@ -230,6 +231,27 @@ public void registerAudit(Person person) {
 
 If a listener fails, dispatch stops and the event follows the normal retry flow. Listener side effects should therefore be idempotent.
 
+## Kafka and RabbitMQ
+
+Every change can also be forwarded to a message broker, in addition to (or instead of) calling
+listener methods. Enable a sink and add its Spring dependency:
+
+```yaml
+tentacolous:
+  kafka:
+    enabled: true
+    topic-prefix: "cdc."   # topic = cdc.<entityName>
+  rabbitmq:
+    enabled: true
+    exchange: tentacolous  # routing key = <entity>.<operation>
+```
+
+Use `@TentacolousCapture(entity = Person.class)` to stream a table without writing a Java listener
+method. See [Message brokers](https://aimtone.github.io/tentacolous/en/concepts/message-brokers/)
+for the full guide, message format, and how to write a custom `ChangeEventSink`.
+
+Message-broker sinks are available from `0.3.0`.
+
 ## Migrating to 0.2.0
 
 Version `0.2.0` is backward compatible with existing listener annotations and adds automatic dialect selection for PostgreSQL, MySQL, MariaDB, SQL Server, Oracle, and SQLite.
@@ -250,7 +272,7 @@ Add the dependency to your `pom.xml`:
 <dependency>
     <groupId>io.github.aimtone</groupId>
     <artifactId>tentacolous</artifactId>
-    <version>0.2.0</version>
+    <version>0.3.0</version>
 </dependency>
 ```
 
@@ -298,7 +320,7 @@ That means your listeners are executed even when the data is modified by:
   https://aimtone.github.io/tentacolous/
 
 - **Documentation**  
-  https://aimtone.github.io/tentacolous/en/documentation/0.2.0/
+  https://aimtone.github.io/tentacolous/en/documentation/
 
 - **GitHub Repository**  
   https://github.com/aimtone/tentacolous

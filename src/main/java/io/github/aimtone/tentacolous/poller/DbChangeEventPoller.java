@@ -9,6 +9,9 @@ import io.github.aimtone.tentacolous.schema.DbListenerSchemaManager;
 import io.github.aimtone.tentacolous.schema.DatabaseDialect;
 import io.github.aimtone.tentacolous.schema.DatabaseDialectResolver;
 import io.github.aimtone.tentacolous.schema.PostgreSqlDialect;
+import io.github.aimtone.tentacolous.capture.CapturePublicationFilter;
+import io.github.aimtone.tentacolous.sink.ChangeEvent;
+import io.github.aimtone.tentacolous.sink.ChangeEventSink;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.SmartLifecycle;
@@ -18,6 +21,9 @@ import org.springframework.scheduling.TaskScheduler;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -35,6 +41,8 @@ public class DbChangeEventPoller implements SmartLifecycle {
     private final DbListenerSchemaManager schemaManager;
     private final TaskScheduler taskScheduler;
     private final DatabaseDialectResolver dialectResolver;
+    private final List<ChangeEventSink> sinks;
+    private final CapturePublicationFilter capturePublicationFilter;
     private final AtomicBoolean running = new AtomicBoolean(false);
     private ScheduledFuture<?> scheduledTask;
 
@@ -59,6 +67,35 @@ public class DbChangeEventPoller implements SmartLifecycle {
             TaskScheduler taskScheduler,
             DatabaseDialectResolver dialectResolver
     ) {
+        this(jdbcTemplate, eventDispatcher, listenerRegistry, properties, schemaManager, taskScheduler,
+                dialectResolver, Collections.emptyList());
+    }
+
+    public DbChangeEventPoller(
+            JdbcTemplate jdbcTemplate,
+            EventDispatcher eventDispatcher,
+            ListenerRegistry listenerRegistry,
+            DbListenerProperties properties,
+            DbListenerSchemaManager schemaManager,
+            TaskScheduler taskScheduler,
+            DatabaseDialectResolver dialectResolver,
+            List<ChangeEventSink> sinks
+    ) {
+        this(jdbcTemplate, eventDispatcher, listenerRegistry, properties, schemaManager, taskScheduler,
+                dialectResolver, sinks, null);
+    }
+
+    public DbChangeEventPoller(
+            JdbcTemplate jdbcTemplate,
+            EventDispatcher eventDispatcher,
+            ListenerRegistry listenerRegistry,
+            DbListenerProperties properties,
+            DbListenerSchemaManager schemaManager,
+            TaskScheduler taskScheduler,
+            DatabaseDialectResolver dialectResolver,
+            List<ChangeEventSink> sinks,
+            CapturePublicationFilter capturePublicationFilter
+    ) {
         this.jdbcTemplate = jdbcTemplate;
         this.eventDispatcher = eventDispatcher;
         this.listenerRegistry = listenerRegistry;
@@ -66,6 +103,10 @@ public class DbChangeEventPoller implements SmartLifecycle {
         this.schemaManager = schemaManager;
         this.taskScheduler = taskScheduler;
         this.dialectResolver = dialectResolver;
+        this.capturePublicationFilter = capturePublicationFilter;
+        List<ChangeEventSink> orderedSinks = new ArrayList<>(sinks == null ? Collections.emptyList() : sinks);
+        orderedSinks.sort(Comparator.comparingInt(ChangeEventSink::order));
+        this.sinks = Collections.unmodifiableList(orderedSinks);
     }
 
     @Override
@@ -141,10 +182,30 @@ public class DbChangeEventPoller implements SmartLifecycle {
                 eventDispatcher.dispatch(event, operation);
             }
 
+            publishToSinks(event, operation);
+
             markProcessed(event.getId());
         } catch (Exception e) {
             log.error("Error processing database change event id={}", event.getId(), e);
             markFailed(event.getId(), e);
+        }
+    }
+
+    private void publishToSinks(DbChangeEvent event, DbOperation operation) throws Exception {
+        if (sinks.isEmpty()) {
+            return;
+        }
+
+        if (capturePublicationFilter != null && !capturePublicationFilter.allows(event, operation)) {
+            return;
+        }
+
+        ChangeEvent changeEvent = ChangeEvent.from(event, operation);
+
+        for (ChangeEventSink sink : sinks) {
+            if (sink.supports(changeEvent)) {
+                sink.publish(changeEvent);
+            }
         }
     }
 

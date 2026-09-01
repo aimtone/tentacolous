@@ -20,8 +20,6 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.LinkedHashSet;
-import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -227,24 +225,12 @@ public class EventDispatcher {
     }
 
     private Set<String> changedFields(DbChangeEvent event, DbOperation operation) {
-        if (operation != DbOperation.UPDATE || event.getOldPayload() == null) {
+        if (operation != DbOperation.UPDATE) {
             return Collections.emptySet();
         }
 
-        try {
-            JsonNode currentPayload = objectMapper.readTree(event.getPayload());
-            JsonNode oldPayload = objectMapper.readTree(event.getOldPayload());
-            Set<String> fieldNames = new LinkedHashSet<>();
-            currentPayload.fieldNames().forEachRemaining(fieldNames::add);
-            oldPayload.fieldNames().forEachRemaining(fieldNames::add);
-            fieldNames.removeIf(fieldName -> Objects.equals(
-                    currentPayload.get(fieldName),
-                    oldPayload.get(fieldName)
-            ));
-            return fieldNames;
-        } catch (Exception e) {
-            throw new RuntimeException("Error comparing current and previous event payloads", e);
-        }
+        return io.github.aimtone.tentacolous.filter.PayloadChanges.changedFields(
+                objectMapper, event.getPayload(), event.getOldPayload());
     }
 
     private Object readHistory(DbChangeEvent event, ListenerDefinition listener, Class<?> historyParameterType) {

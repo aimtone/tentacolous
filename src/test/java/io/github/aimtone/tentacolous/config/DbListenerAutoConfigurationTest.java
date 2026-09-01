@@ -1,6 +1,7 @@
 package io.github.aimtone.tentacolous.config;
 
 import io.github.aimtone.tentacolous.annotations.UponInserting;
+import io.github.aimtone.tentacolous.capture.Capture;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.aimtone.tentacolous.dispatcher.EventDispatcher;
 import io.github.aimtone.tentacolous.poller.DbChangeEventPoller;
@@ -127,6 +128,72 @@ class DbListenerAutoConfigurationTest {
     }
 
     @Test
+    void createsTriggersForCaptureBeansWhenApplicationStarts() throws Exception {
+        JdbcTemplate jdbcTemplate = mock(JdbcTemplate.class);
+        TaskScheduler taskScheduler = mock(TaskScheduler.class);
+        ScheduledFuture<?> scheduledFuture = mock(ScheduledFuture.class);
+        Connection connection = mock(Connection.class);
+        DatabaseMetaData metaData = mock(DatabaseMetaData.class);
+
+        when(connection.getMetaData()).thenReturn(metaData);
+        when(metaData.getDatabaseProductName()).thenReturn("PostgreSQL");
+        when(jdbcTemplate.execute(any(org.springframework.jdbc.core.ConnectionCallback.class))).thenAnswer(invocation -> {
+            org.springframework.jdbc.core.ConnectionCallback<?> callback = invocation.getArgument(0);
+            return callback.doInConnection(connection);
+        });
+        when(jdbcTemplate.query(anyString(), any(RowMapper.class), anyInt())).thenReturn(Collections.emptyList());
+        doReturn(scheduledFuture)
+                .when(taskScheduler)
+                .scheduleWithFixedDelay(any(Runnable.class), any(Instant.class), any(Duration.class));
+
+        contextRunner
+                .withBean(JdbcTemplate.class, () -> jdbcTemplate)
+                .withBean(DataSource.class, () -> mock(DataSource.class))
+                .withBean("dbListenerTaskScheduler", TaskScheduler.class, () -> taskScheduler)
+                .withBean("personCapture", Capture.class, () -> Capture.of(Person.class))
+                .run(context -> {
+                    assertThat(context).hasSingleBean(DbChangeEventPoller.class);
+                    verify(jdbcTemplate).execute("CREATE TRIGGER person_tentacolous_listener_insert "
+                            + "AFTER INSERT ON person "
+                            + "FOR EACH ROW "
+                            + "EXECUTE FUNCTION db_change_event_notify_change('Person', '{}', 'id')");
+                });
+    }
+
+    @Test
+    void createsTriggersForCaptureAnnotationOnAProxiedConfigurationClass() throws Exception {
+        JdbcTemplate jdbcTemplate = mock(JdbcTemplate.class);
+        TaskScheduler taskScheduler = mock(TaskScheduler.class);
+        ScheduledFuture<?> scheduledFuture = mock(ScheduledFuture.class);
+        Connection connection = mock(Connection.class);
+        DatabaseMetaData metaData = mock(DatabaseMetaData.class);
+
+        when(connection.getMetaData()).thenReturn(metaData);
+        when(metaData.getDatabaseProductName()).thenReturn("PostgreSQL");
+        when(jdbcTemplate.execute(any(org.springframework.jdbc.core.ConnectionCallback.class))).thenAnswer(invocation -> {
+            org.springframework.jdbc.core.ConnectionCallback<?> callback = invocation.getArgument(0);
+            return callback.doInConnection(connection);
+        });
+        when(jdbcTemplate.query(anyString(), any(RowMapper.class), anyInt())).thenReturn(Collections.emptyList());
+        doReturn(scheduledFuture)
+                .when(taskScheduler)
+                .scheduleWithFixedDelay(any(Runnable.class), any(Instant.class), any(Duration.class));
+
+        contextRunner
+                .withBean(JdbcTemplate.class, () -> jdbcTemplate)
+                .withBean(DataSource.class, () -> mock(DataSource.class))
+                .withBean("dbListenerTaskScheduler", TaskScheduler.class, () -> taskScheduler)
+                .withUserConfiguration(CaptureConfiguration.class)
+                .run(context -> {
+                    assertThat(context).hasSingleBean(DbChangeEventPoller.class);
+                    verify(jdbcTemplate).execute("CREATE TRIGGER person_tentacolous_listener_insert "
+                            + "AFTER INSERT ON person "
+                            + "FOR EACH ROW "
+                            + "EXECUTE FUNCTION db_change_event_notify_change('Person', '{}', 'id')");
+                });
+    }
+
+    @Test
     void backsOffPollerWhenDisabled() {
         contextRunner
                 .withBean(DataSource.class, () -> mock(DataSource.class))
@@ -139,6 +206,11 @@ class DbListenerAutoConfigurationTest {
         @UponInserting(entity = Person.class)
         public void onInserting(Person person) {
         }
+    }
+
+    @org.springframework.context.annotation.Configuration
+    @io.github.aimtone.tentacolous.annotations.TentacolousCapture(entity = Person.class)
+    static class CaptureConfiguration {
     }
 
     static class Person {

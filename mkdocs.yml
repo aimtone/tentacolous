@@ -60,11 +60,12 @@ plugins:
                 - Resumen: getting-started/overview.md
                 - Requisitos: getting-started/requirements.md
                 - Instalación: getting-started/installation.md
-                - Migración a 0.2.0: getting-started/migration.md
+                - Migración: getting-started/migration.md
             - Conceptos:
                 - Configuración: concepts/configuration.md
                 - Mapeo de entidades: concepts/entity-mapping.md
                 - Cómo funciona: concepts/how-it-works.md
+                - Colas de mensajes: concepts/message-brokers.md
                 - Seguridad: concepts/security.md
                 - Producción: concepts/production.md
             - API:
@@ -78,6 +79,7 @@ plugins:
                 - Tests: examples/tests.md
             - Archivo de versiones:
                 - Versión actual: documentation/index.md
+                - 0.3.0: documentation/0.3.0/index.md
                 - 0.2.0: documentation/0.2.0/index.md
                 - 0.1.8: documentation/0.1.8/index.md
                 - 0.1.7: documentation/0.1.7/index.md
@@ -119,11 +121,12 @@ nav:
       - Overview: getting-started/overview.md
       - Requirements: getting-started/requirements.md
       - Installation: getting-started/installation.md
-      - Migration to 0.2.0: getting-started/migration.md
+      - Migration: getting-started/migration.md
   - Concepts:
       - Configuration: concepts/configuration.md
       - Entity mapping: concepts/entity-mapping.md
       - How it works: concepts/how-it-works.md
+      - Message brokers: concepts/message-brokers.md
       - Security: concepts/security.md
       - Production: concepts/production.md
   - API:
@@ -137,6 +140,7 @@ nav:
       - Tests: examples/tests.md
   - Version archive:
       - Current alias: documentation/index.md
+      - 0.3.0: documentation/0.3.0/index.md
       - 0.2.0: documentation/0.2.0/index.md
       - 0.1.8: documentation/0.1.8/index.md
       - 0.1.7: documentation/0.1.7/index.md

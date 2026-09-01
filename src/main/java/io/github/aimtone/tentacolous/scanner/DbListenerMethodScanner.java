@@ -1,5 +1,6 @@
 package io.github.aimtone.tentacolous.scanner;
 
+import io.github.aimtone.tentacolous.annotations.TentacolousCapture;
 import io.github.aimtone.tentacolous.annotations.UponDeleting;
 import io.github.aimtone.tentacolous.annotations.UponInserting;
 import io.github.aimtone.tentacolous.annotations.UponUpdating;
@@ -7,6 +8,7 @@ import io.github.aimtone.tentacolous.annotations.TentacolousListener;
 import io.github.aimtone.tentacolous.annotations.ValueType;
 import io.github.aimtone.tentacolous.model.DbOperation;
 import io.github.aimtone.tentacolous.filter.TentacolousFilter;
+import io.github.aimtone.tentacolous.registry.CaptureRegistry;
 import io.github.aimtone.tentacolous.registry.ListenerDefinition;
 import io.github.aimtone.tentacolous.registry.ListenerFilter;
 import io.github.aimtone.tentacolous.registry.ListenerRegistry;
@@ -40,12 +42,19 @@ public class DbListenerMethodScanner implements SmartInitializingSingleton, Appl
     }
 
     private final ListenerRegistry listenerRegistry;
+    private final CaptureRegistry captureRegistry;
     private ApplicationContext applicationContext;
     private boolean scanned;
     private int registeredListeners;
+    private int registeredCaptures;
 
     public DbListenerMethodScanner(ListenerRegistry listenerRegistry) {
+        this(listenerRegistry, null);
+    }
+
+    public DbListenerMethodScanner(ListenerRegistry listenerRegistry, CaptureRegistry captureRegistry) {
         this.listenerRegistry = listenerRegistry;
+        this.captureRegistry = captureRegistry;
     }
 
     @Override
@@ -66,7 +75,43 @@ public class DbListenerMethodScanner implements SmartInitializingSingleton, Appl
             postProcessAfterInitialization(entry.getValue(), entry.getKey());
         }
 
-        log.info("Tentacolous registered {} listener method(s)", registeredListeners);
+        registerCaptureBeans();
+
+        log.info("Tentacolous registered {} listener method(s) and {} capture declaration(s)",
+                registeredListeners, registeredCaptures);
+    }
+
+    private void registerCaptureBeans() {
+        if (captureRegistry == null || applicationContext == null) {
+            return;
+        }
+
+        for (io.github.aimtone.tentacolous.capture.Capture capture
+                : applicationContext.getBeansOfType(io.github.aimtone.tentacolous.capture.Capture.class).values()) {
+            Class<?> entity = capture.getEntity();
+            String entityName = resolveEntityName(entity, capture.getEntityName());
+            String tableName = resolveTableName(entity);
+            String recordKeyField = resolveRecordKeyField(entity);
+            ListenerFilter declarativeFilter = new ListenerFilter(
+                    capture.getField(), capture.getValueType(), capture.getValue());
+
+            for (DbOperation operation : capture.getOperations()) {
+                captureRegistry.register(new ListenerDefinition(
+                        null,
+                        null,
+                        operation,
+                        entity,
+                        entityName,
+                        tableName,
+                        recordKeyField,
+                        declarativeFilter,
+                        capture.getFilter(),
+                        capture.getOrder(),
+                        capture.getExcludedColumns().toArray(new String[0])
+                ));
+                registeredCaptures++;
+            }
+        }
     }
 
     public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
@@ -81,7 +126,72 @@ public class DbListenerMethodScanner implements SmartInitializingSingleton, Appl
             registerUponDeleting(bean, method);
         }
 
+        registerCaptures(targetClass);
+
         return bean;
+    }
+
+    private void registerCaptures(Class<?> targetClass) {
+        if (captureRegistry == null) {
+            return;
+        }
+
+        for (TentacolousCapture capture : findCaptures(targetClass)) {
+            Class<?> entity = capture.entity();
+            String entityName = resolveEntityName(entity, capture.entityName());
+            String tableName = resolveTableName(entity);
+            String recordKeyField = resolveRecordKeyField(entity);
+
+            warnWhenCustomFilterOverridesDeclarativeFilter(
+                    capture.filter(), capture.valueType(), capture.field(), capture.value(),
+                    "@TentacolousCapture", null);
+            validateCustomFilterType(capture.filter(), entity, "@TentacolousCapture");
+
+            ListenerFilter declarativeFilter = new ListenerFilter(
+                    capture.field(), capture.valueType(), capture.value());
+            TentacolousFilter<?> customFilter = resolveCustomFilter(capture.filter(), "@TentacolousCapture");
+
+            for (DbOperation operation : captureOperations(capture)) {
+                captureRegistry.register(new ListenerDefinition(
+                        null,
+                        null,
+                        operation,
+                        entity,
+                        entityName,
+                        tableName,
+                        recordKeyField,
+                        declarativeFilter,
+                        customFilter,
+                        capture.order(),
+                        capture.exclude()
+                ));
+                registeredCaptures++;
+            }
+        }
+    }
+
+    private List<TentacolousCapture> findCaptures(Class<?> targetClass) {
+        // TYPE_HIERARCHY unwraps CGLIB @Configuration proxies (annotation sits on the superclass) and
+        // expands the repeatable @TentacolousCaptures container.
+        return org.springframework.core.annotation.MergedAnnotations
+                .from(targetClass, org.springframework.core.annotation.MergedAnnotations.SearchStrategy.TYPE_HIERARCHY)
+                .stream(TentacolousCapture.class)
+                .map(annotation -> annotation.synthesize())
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    private Set<DbOperation> captureOperations(TentacolousCapture capture) {
+        if (capture.actions().length == 0) {
+            return EnumSet.allOf(DbOperation.class);
+        }
+
+        Set<DbOperation> operations = EnumSet.noneOf(DbOperation.class);
+
+        for (var action : capture.actions()) {
+            operations.add(DbOperation.valueOf(action.name()));
+        }
+
+        return operations;
     }
 
     private void registerTentacolousListener(Object bean, Method annotatedMethod) {
@@ -324,10 +434,10 @@ public class DbListenerMethodScanner implements SmartInitializingSingleton, Appl
         }
 
         log.warn(
-                "{} on method {} declares custom filter {} together with field/value/valueType. "
+                "{} on {} declares custom filter {} together with field/value/valueType. "
                         + "The custom filter has priority and the declarative filter will not be executed.",
                 annotationName,
-                method.getName(),
+                method == null ? "type" : "method " + method.getName(),
                 filterClass.getName()
         );
     }

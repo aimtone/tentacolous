@@ -1,2 +1,4 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-io.github.aimtone.tentacolous.config.DbListenerAutoConfiguration
+io.github.aimtone.tentacolous.config.DbListenerAutoConfiguration,\
+io.github.aimtone.tentacolous.config.KafkaSinkAutoConfiguration,\
+io.github.aimtone.tentacolous.config.RabbitSinkAutoConfiguration
