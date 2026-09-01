@@ -6,6 +6,8 @@ The important difference is that Tentacolous reacts to database changes regardle
 
 **Version 0.2.0 adds database-agnostic execution.** The same listener and filter API now works with PostgreSQL, MySQL, MariaDB, SQL Server, Oracle, and SQLite through automatically detected dialects.
 
+**Version 0.3.0 adds message-broker sinks.** Every change can also be forwarded to Kafka or RabbitMQ. See [Message brokers](../concepts/message-brokers.md).
+
 **1.** It creates an event table.
 
 **2.** It creates database-specific event infrastructure and triggers.
@@ -19,3 +21,5 @@ The important difference is that Tentacolous reacts to database changes regardle
 **6.** Tentacolous converts the JSON payload into your Java entity.
 
 **7.** Tentacolous runs the annotated method.
+
+**8.** Optionally, Tentacolous forwards the same change to a message broker (Kafka, RabbitMQ) through a `ChangeEventSink`. See [Message brokers](../concepts/message-brokers.md).

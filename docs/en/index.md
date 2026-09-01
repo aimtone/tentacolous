@@ -37,6 +37,10 @@ Annotate a method with `@UponInserting`, `@UponUpdating` or `@UponDeleting` and 
 
 Tentacolous uses database-specific triggers, an event table, and a configurable processor to ensure each change is detected and processed correctly.
 
+### Forward to Kafka or RabbitMQ
+
+Enable a sink and every change is also published to a message broker, keyed for ordering and carrying a `before` / `after` envelope. Stream a table with `@TentacolousCapture` and no Java method. See [Message brokers](concepts/message-brokers.md).
+
 Quick start
 
 ## Start in less than 5 minutes. {#start}
@@ -52,12 +56,12 @@ Gradle
 <dependency>
   <groupId>io.github.aimtone</groupId>
   <artifactId>tentacolous</artifactId>
-  <version>0.2.0</version>
+  <version>0.3.0</version>
 </dependency>
 ```
 
 ```groovy
-implementation 'io.github.aimtone:tentacolous:0.2.0'
+implementation 'io.github.aimtone:tentacolous:0.3.0'
 ```
 
 2. Add propertiesSpring config

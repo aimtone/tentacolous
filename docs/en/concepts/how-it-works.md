@@ -15,3 +15,7 @@ The trigger stores `entity_name`, `operation`, `payload`, `old_payload`, `record
 When a listener asks for history, Tentacolous queries previous `INSERT` and `UPDATE` payloads for the same `entity_name` and `record_key`, ordered from oldest to newest.
 
 The poller looks for `PENDING` events, marks them as `PROCESSING`, runs the listener and finally marks them as `PROCESSED`. If an error happens, Tentacolous stores `last_error` and retries until `tentacolous.max-attempts` is reached.
+
+### Sinks
+
+After the listener methods run, the poller hands the same event to every registered `ChangeEventSink` (Kafka, RabbitMQ, or your own). A sink failure is treated like a listener failure: the event stays `PENDING` and is retried, so sinks receive at-least-once delivery and must tolerate a repeated `eventId`. Because the trigger writes the event in the same transaction as the business change, this is the transactional-outbox pattern. See [Message brokers](message-brokers.md).

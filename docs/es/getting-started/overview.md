@@ -6,6 +6,8 @@ La diferencia importante es que Tentacolous reacciona a los cambios de la base d
 
 **La version 0.2.0 añade ejecucion agnostica a la base de datos.** La misma API de listeners y filtros funciona con PostgreSQL, MySQL, MariaDB, SQL Server, Oracle y SQLite mediante dialectos detectados automaticamente.
 
+**La version 0.3.0 añade sinks para colas de mensajes.** Cada cambio tambien se puede reenviar a Kafka o RabbitMQ. Ver [Colas de mensajes](../concepts/message-brokers.md).
+
 **1.** Crea una tabla de eventos.
 
 **2.** Crea infraestructura de eventos y triggers especificos para el motor.
@@ -19,3 +21,5 @@ La diferencia importante es que Tentacolous reacciona a los cambios de la base d
 **6.** Tentacolous convierte el payload JSON en tu entidad Java.
 
 **7.** Tentacolous ejecuta el metodo anotado.
+
+**8.** Opcionalmente, Tentacolous reenvia el mismo cambio a una cola de mensajes (Kafka, RabbitMQ) mediante un `ChangeEventSink`. Ver [Colas de mensajes](../concepts/message-brokers.md).

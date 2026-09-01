@@ -37,6 +37,10 @@ Anota un metodo con `@UponInserting`, `@UponUpdating` o `@UponDeleting` y recibe
 
 Tentacolous utiliza triggers especificos para cada motor, una tabla de eventos y un procesador configurable para garantizar que cada cambio sea detectado y procesado correctamente.
 
+### Reenvia a Kafka o RabbitMQ
+
+Activa un sink y cada cambio tambien se publica en una cola de mensajes, con clave para mantener el orden y un envelope `before` / `after`. Transmite una tabla con `@TentacolousCapture` sin escribir ningun metodo Java. Ver [Colas de mensajes](concepts/message-brokers.md).
+
 Inicio rapido
 
 ## Empieza en menos de 5 minutos. {#start}
@@ -52,12 +56,12 @@ Gradle
 <dependency>
   <groupId>io.github.aimtone</groupId>
   <artifactId>tentacolous</artifactId>
-  <version>0.2.0</version>
+  <version>0.3.0</version>
 </dependency>
 ```
 
 ```groovy
-implementation 'io.github.aimtone:tentacolous:0.2.0'
+implementation 'io.github.aimtone:tentacolous:0.3.0'
 ```
 
 2. Agrega propertiesConfig Spring

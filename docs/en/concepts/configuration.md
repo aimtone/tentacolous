@@ -32,6 +32,25 @@ spring:
 | `tentacolous.batch-size` | `100` | Maximum number of events read in each cycle. |
 | `tentacolous.max-attempts` | `3` | Retry limit before an event is marked as `FAILED`. |
 
+### Message-broker sinks
+
+These properties are only read when the matching Spring dependency is on the classpath. Full guide: [Message brokers](message-brokers.md).
+
+| Property | Default | What it does |
+| --- | --- | --- |
+| `tentacolous.kafka.enabled` | `false` | Publishes every change to Kafka. |
+| `tentacolous.kafka.topic` | *(empty)* | Fixed topic. When empty, the topic is `topic-prefix` + entity name. |
+| `tentacolous.kafka.topic-prefix` | *(empty)* | Prefix for the per-entity topic, e.g. `cdc.`. |
+| `tentacolous.kafka.format` | `envelope` | `envelope` (before/after + metadata) or `raw` (row payload). |
+| `tentacolous.kafka.add-headers` | `true` | Adds `tentacolous-*` headers. |
+| `tentacolous.kafka.send-timeout` | `10s` | Wait for the broker ack before failing the event. |
+| `tentacolous.rabbitmq.enabled` | `false` | Publishes every change to RabbitMQ. |
+| `tentacolous.rabbitmq.exchange` | `tentacolous` | Topic exchange to publish to. |
+| `tentacolous.rabbitmq.routing-key-prefix` | *(empty)* | Prefix for the `entity.operation` routing key. |
+| `tentacolous.rabbitmq.format` | `envelope` | `envelope` or `raw`. |
+| `tentacolous.rabbitmq.declare-exchange` | `true` | Declares the durable topic exchange on startup. |
+| `tentacolous.rabbitmq.add-headers` | `true` | Adds `tentacolous-*` headers. |
+
 ### Schema management modes
 
 | Mode | Common use | Behavior |

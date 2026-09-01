@@ -1,14 +1,17 @@
 package io.github.aimtone.tentacolous.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.aimtone.tentacolous.capture.CapturePublicationFilter;
 import io.github.aimtone.tentacolous.dispatcher.EventDispatcher;
 import io.github.aimtone.tentacolous.poller.DbChangeEventPoller;
+import io.github.aimtone.tentacolous.registry.CaptureRegistry;
 import io.github.aimtone.tentacolous.registry.ListenerRegistry;
 import io.github.aimtone.tentacolous.schema.DbListenerSchemaManager;
 import io.github.aimtone.tentacolous.schema.DatabaseDialect;
 import io.github.aimtone.tentacolous.schema.DatabaseDialectResolver;
 import io.github.aimtone.tentacolous.schema.*;
 import io.github.aimtone.tentacolous.scanner.DbListenerMethodScanner;
+import io.github.aimtone.tentacolous.sink.ChangeEventSink;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -41,8 +44,26 @@ public class DbListenerAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public static DbListenerMethodScanner dbListenerMethodScanner(ListenerRegistry listenerRegistry) {
-        return new DbListenerMethodScanner(listenerRegistry);
+    public CaptureRegistry captureRegistry() {
+        return new CaptureRegistry();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public CapturePublicationFilter capturePublicationFilter(
+            CaptureRegistry captureRegistry,
+            ObjectMapper objectMapper
+    ) {
+        return new CapturePublicationFilter(captureRegistry, objectMapper);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public static DbListenerMethodScanner dbListenerMethodScanner(
+            ListenerRegistry listenerRegistry,
+            CaptureRegistry captureRegistry
+    ) {
+        return new DbListenerMethodScanner(listenerRegistry, captureRegistry);
     }
 
     @Bean
@@ -113,10 +134,11 @@ public class DbListenerAutoConfiguration {
     public DbListenerSchemaManager dbListenerSchemaManager(
             JdbcTemplate jdbcTemplate,
             ListenerRegistry listenerRegistry,
+            CaptureRegistry captureRegistry,
             DbListenerProperties properties,
             DatabaseDialectResolver dialectResolver
     ) {
-        return new DbListenerSchemaManager(jdbcTemplate, listenerRegistry, properties, dialectResolver);
+        return new DbListenerSchemaManager(jdbcTemplate, listenerRegistry, captureRegistry, properties, dialectResolver);
     }
 
     @Bean
@@ -140,7 +162,9 @@ public class DbListenerAutoConfiguration {
             DbListenerProperties properties,
             DbListenerSchemaManager schemaManager,
             TaskScheduler taskScheduler,
-            DatabaseDialectResolver dialectResolver
+            DatabaseDialectResolver dialectResolver,
+            org.springframework.beans.factory.ObjectProvider<ChangeEventSink> sinks,
+            CapturePublicationFilter capturePublicationFilter
     ) {
         return new DbChangeEventPoller(
                 jdbcTemplate,
@@ -149,7 +173,9 @@ public class DbListenerAutoConfiguration {
                 properties,
                 schemaManager,
                 taskScheduler,
-                dialectResolver
+                dialectResolver,
+                sinks.orderedStream().toList(),
+                capturePublicationFilter
         );
     }
 }

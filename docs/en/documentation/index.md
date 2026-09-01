@@ -16,6 +16,8 @@ The important difference is that Tentacolous reacts to database changes regardle
 
 **Version 0.2.0 adds database-agnostic execution.** Tentacolous detects the JDBC product and selects database-specific table, trigger, JSON, pagination, and history behavior while preserving the existing listener and filter API.
 
+**Version 0.3.0 adds message-broker sinks.** The same event can be forwarded to Kafka or RabbitMQ through a `ChangeEventSink`, and `@TentacolousCapture` streams a table without a listener method. See [Message brokers](#message-brokers).
+
 **1.** It creates an event table.
 
 **2.** It creates database-specific trigger infrastructure.
@@ -29,6 +31,8 @@ The important difference is that Tentacolous reacts to database changes regardle
 **6.** Tentacolous converts the JSON payload into your Java entity.
 
 **7.** Tentacolous runs the annotated method.
+
+**8.** Optionally, Tentacolous forwards the same change to a message broker (Kafka, RabbitMQ). See [Message brokers](#message-brokers).
 
 ## Requirements {#requirements}
 
@@ -44,7 +48,7 @@ Automatic database infrastructure is available for PostgreSQL, MySQL, MariaDB, S
 ### Gradle
 
 ```groovy
-implementation 'io.github.aimtone:tentacolous:0.2.0'
+implementation 'io.github.aimtone:tentacolous:0.3.0'
 ```
 
 ### Maven
@@ -53,7 +57,7 @@ implementation 'io.github.aimtone:tentacolous:0.2.0'
 <dependency>
   <groupId>io.github.aimtone</groupId>
   <artifactId>tentacolous</artifactId>
-  <version>0.2.0</version>
+  <version>0.3.0</version>
 </dependency>
 ```
 
@@ -695,6 +699,151 @@ When a listener asks for history, Tentacolous queries previous `INSERT` and `UPD
 
 The poller looks for `PENDING` events, marks them as `PROCESSING`, runs the listener and finally marks them as `PROCESSED`. If an error happens, Tentacolous stores `last_error` and retries until `tentacolous.max-attempts` is reached.
 
+## Message brokers {#message-brokers}
+
+Besides calling listener methods, Tentacolous can forward every change to a message broker through a `ChangeEventSink`. Enabling a sink turns Tentacolous into a lightweight change-data-capture relay: no Kafka Connect, no WAL/binlog access, just the triggers and event table it already manages.
+
+After the listeners run, the poller hands the event to every registered sink. A sink failure keeps the event `PENDING` and retries it, so delivery is **at-least-once**; consumers deduplicate on `eventId`.
+
+### Choosing which tables to forward
+
+A trigger exists only for a table with at least one listener **or** a capture declaration. To stream a table with no `@Upon...` method, declare a capture in one of two equivalent ways.
+
+**With the annotation** (class body may stay empty):
+
+```java
+@Configuration
+@TentacolousCapture(entity = Person.class)
+@TentacolousCapture(entity = Order.class, actions = {ActionListener.INSERT, ActionListener.UPDATE})
+public class TentacolousCaptureConfig {
+}
+```
+
+**With a `Capture` bean** (nothing to instantiate — Spring runs the `@Bean` method, Tentacolous collects it):
+
+```java
+@Configuration
+public class TentacolousConfig {
+
+    @Bean
+    Capture personCapture() {
+        return Capture.of(Person.class);
+    }
+
+    @Bean
+    Capture approvedOrderCapture() {
+        return Capture.of(Order.class)
+                .operations(DbOperation.INSERT, DbOperation.UPDATE)
+                .where("status", ValueType.STRING, "APPROVED")
+                .exclude("internal_notes");
+    }
+}
+```
+
+Both support `actions`/`.operations`, `entityName`, `exclude`, a declarative filter (`field`/`valueType`/`value` or `.where(...)`), a programmatic `TentacolousFilter` (`filter` or `.filter(...)`), and `order`. A capture filter decides **which changes reach the sinks**; a listener without an explicit capture still forwards everything. See [Message brokers](../concepts/message-brokers.md).
+
+### Message format
+
+| `format` | Body |
+| --- | --- |
+| `envelope` (default) | JSON with `eventId`, `entity`, `operation`, `recordKey`, `observedAt`, `before`, `after` |
+| `raw` | The row payload exactly as the trigger produced it |
+
+For `INSERT`, `before` is `null`. For `DELETE`, `after` is `null` and `before` holds the removed row. Headers `tentacolous-event-id`, `tentacolous-entity` and `tentacolous-operation` are always present.
+
+### Kafka
+
+```xml
+<dependency>
+  <groupId>org.springframework.kafka</groupId>
+  <artifactId>spring-kafka</artifactId>
+</dependency>
+```
+
+```yaml
+spring:
+  kafka:
+    bootstrap-servers: localhost:9092
+
+tentacolous:
+  kafka:
+    enabled: true
+    topic-prefix: "cdc."      # topic = cdc.<entityName>
+    format: envelope
+```
+
+The record key is the `recordKey`, so all changes to a row keep their order on the same partition. The producer runs with `acks=all` and `enable.idempotence=true` by default; override through `spring.kafka.producer.*`.
+
+```java
+@KafkaListener(topics = "cdc.Person", groupId = "billing")
+public void onPersonChange(ConsumerRecord<String, byte[]> record) {
+    String json = new String(record.value(), StandardCharsets.UTF_8);
+    // parse the envelope, deduplicate on the tentacolous-event-id header
+}
+```
+
+### RabbitMQ
+
+```xml
+<dependency>
+  <groupId>org.springframework.boot</groupId>
+  <artifactId>spring-boot-starter-amqp</artifactId>
+</dependency>
+```
+
+```yaml
+spring:
+  rabbitmq:
+    host: localhost
+    username: guest
+    password: guest
+
+tentacolous:
+  rabbitmq:
+    enabled: true
+    exchange: tentacolous
+    format: envelope
+```
+
+Messages go to a durable topic exchange with routing key `entity.operation` (`person.update`, `order.delete`). Bind your queues with the pattern you need:
+
+```java
+@Bean
+Binding billingBinding(Queue billingQueue, TopicExchange tentacolousRabbitExchange) {
+    return BindingBuilder.bind(billingQueue).to(tentacolousRabbitExchange).with("person.*");
+}
+
+@RabbitListener(queues = "billing.person")
+public void onPersonChange(Message message) {
+    // message.getBody() is the JSON envelope
+}
+```
+
+### Custom sink
+
+```java
+@Component
+public class WebhookSink implements ChangeEventSink {
+
+    @Override
+    public String name() {
+        return "webhook";
+    }
+
+    @Override
+    public boolean supports(ChangeEvent event) {
+        return "Person".equals(event.getEntityName());
+    }
+
+    @Override
+    public void publish(ChangeEvent event) throws Exception {
+        // forward event.getPayload(); block until acknowledged
+    }
+}
+```
+
+A lower `order()` runs before the broker sinks.
+
 ## Security {#security}
 
 - Do not store secrets in the payload.
@@ -711,7 +860,8 @@ The poller looks for `PENDING` events, marks them as `PROCESSING`, runs the list
 - Monitor `FAILED` events.
 - Clean up or archive `db_change_event`.
 - Avoid slow logic inside listeners.
-- Publish to a queue if the process is heavy.
+- Publish to a queue if the process is heavy. Use the built-in [Kafka or RabbitMQ sink](#message-brokers) instead of doing it by hand inside a listener.
+- Keep sink consumers idempotent: delivery is at-least-once, keyed by `eventId`.
 
 ## Running Tentacolous tests {#tests}
 

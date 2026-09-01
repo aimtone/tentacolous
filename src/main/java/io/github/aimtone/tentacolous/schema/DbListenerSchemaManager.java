@@ -2,12 +2,14 @@ package io.github.aimtone.tentacolous.schema;
 
 import io.github.aimtone.tentacolous.config.DbListenerProperties;
 import io.github.aimtone.tentacolous.model.DbOperation;
+import io.github.aimtone.tentacolous.registry.CaptureRegistry;
 import io.github.aimtone.tentacolous.registry.ListenerDefinition;
 import io.github.aimtone.tentacolous.registry.ListenerRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -20,6 +22,7 @@ public class DbListenerSchemaManager {
 
     private final JdbcTemplate jdbcTemplate;
     private final ListenerRegistry listenerRegistry;
+    private final CaptureRegistry captureRegistry;
     private final DbListenerProperties properties;
     private final DatabaseDialectResolver dialectResolver;
 
@@ -49,8 +52,19 @@ public class DbListenerSchemaManager {
             DbListenerProperties properties,
             DatabaseDialectResolver dialectResolver
     ) {
+        this(jdbcTemplate, listenerRegistry, null, properties, dialectResolver);
+    }
+
+    public DbListenerSchemaManager(
+            JdbcTemplate jdbcTemplate,
+            ListenerRegistry listenerRegistry,
+            CaptureRegistry captureRegistry,
+            DbListenerProperties properties,
+            DatabaseDialectResolver dialectResolver
+    ) {
         this.jdbcTemplate = jdbcTemplate;
         this.listenerRegistry = listenerRegistry;
+        this.captureRegistry = captureRegistry;
         this.properties = properties;
         this.dialectResolver = dialectResolver;
     }
@@ -80,7 +94,13 @@ public class DbListenerSchemaManager {
 
         Set<String> installedTriggers = new HashSet<>();
 
-        for (ListenerDefinition listener : listenerRegistry.getAllListeners()) {
+        List<ListenerDefinition> triggerSources = new ArrayList<>(listenerRegistry.getAllListeners());
+
+        if (captureRegistry != null) {
+            triggerSources.addAll(captureRegistry.getAll());
+        }
+
+        for (ListenerDefinition listener : triggerSources) {
             String triggerKey = listener.getOperation() + "|" + listener.getTableName() + "|" + listener.getEntityName();
 
             if (!installedTriggers.add(triggerKey)) {

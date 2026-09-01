@@ -4,6 +4,20 @@ All notable changes to Tentacolous are documented on this page.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## 0.3.0 — unreleased
+
+### Added
+
+- Added the `ChangeEventSink` SPI. Any Spring bean implementing it receives every detected change after the in-process listener methods run, with at-least-once delivery and the existing retry flow on failure.
+- Added a native Kafka sink (`tentacolous.kafka.*`), enabled when `spring-kafka` is on the classpath. One record per event, keyed by the record key, with `acks=all` and producer idempotence by default.
+- Added a native RabbitMQ sink (`tentacolous.rabbitmq.*`), enabled when `spring-boot-starter-amqp` is on the classpath. Publishes to a durable topic exchange with routing key `entity.operation`.
+- Added the `envelope` (default) and `raw` message formats, plus `tentacolous-event-id`, `tentacolous-entity` and `tentacolous-operation` message headers.
+- Added captures (the `@TentacolousCapture` annotation or an equivalent `Capture` bean) to forward a table to the configured sinks without writing a listener method. Both accept operations, `entityName`, `exclude`, a declarative filter, a programmatic `TentacolousFilter`, and `order`; the capture filters decide which changes reach the sinks.
+
+### Changed
+
+- `spring-kafka` and `spring-boot-starter-amqp` are declared as optional dependencies. Applications that do not use them are unaffected.
+
 ## 0.2.0 — 2026-07-11
 
 ### Added
