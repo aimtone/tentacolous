@@ -4,7 +4,7 @@ All notable changes to Tentacolous will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
-## [0.3.0] - unreleased
+## [0.3.0] - 2026-09-01
 
 ### Added
 - Added the `ChangeEventSink` SPI: any Spring bean implementing it receives every detected change

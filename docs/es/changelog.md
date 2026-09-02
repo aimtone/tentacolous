@@ -4,7 +4,7 @@ Todos los cambios importantes de Tentacolous se documentan en esta página.
 
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/).
 
-## 0.3.0 — sin publicar
+## 0.3.0 — 2026-09-01
 
 ### Añadido
 
