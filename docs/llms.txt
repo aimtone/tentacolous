@@ -1,8 +1,8 @@
 # Tentacolous
 
-> Java 17+ Spring Boot library for PostgreSQL INSERT, UPDATE, and DELETE listeners.
+> Java 17+ Spring Boot library that runs Java methods on INSERT, UPDATE, and DELETE in PostgreSQL, MySQL, MariaDB, SQL Server, Oracle, and SQLite, including changes made outside the application.
 
-Current stable version: 0.1.8
+Current stable version: 0.3.0
 Source: https://github.com/aimtone/tentacolous
 
 ## Documentation
@@ -12,9 +12,11 @@ Source: https://github.com/aimtone/tentacolous
 - [api/declarative-filters.md](https://aimtone.github.io/tentacolous/api/declarative-filters/)
 - [api/invalid-combinations.md](https://aimtone.github.io/tentacolous/api/invalid-combinations/)
 - [api/listeners.md](https://aimtone.github.io/tentacolous/api/listeners/)
+- [concepts/architecture-faq.md](https://aimtone.github.io/tentacolous/en/concepts/architecture-faq/)
 - [concepts/configuration.md](https://aimtone.github.io/tentacolous/concepts/configuration/)
 - [concepts/entity-mapping.md](https://aimtone.github.io/tentacolous/concepts/entity-mapping/)
 - [concepts/how-it-works.md](https://aimtone.github.io/tentacolous/concepts/how-it-works/)
+- [concepts/message-brokers.md](https://aimtone.github.io/tentacolous/en/concepts/message-brokers/)
 - [concepts/production.md](https://aimtone.github.io/tentacolous/concepts/production/)
 - [concepts/security.md](https://aimtone.github.io/tentacolous/concepts/security/)
 - [es/api/annotations.md](https://aimtone.github.io/tentacolous/es/api/annotations/)
@@ -22,6 +24,7 @@ Source: https://github.com/aimtone/tentacolous
 - [es/api/declarative-filters.md](https://aimtone.github.io/tentacolous/es/api/declarative-filters/)
 - [es/api/invalid-combinations.md](https://aimtone.github.io/tentacolous/es/api/invalid-combinations/)
 - [es/api/listeners.md](https://aimtone.github.io/tentacolous/es/api/listeners/)
+- [es/concepts/architecture-faq.md](https://aimtone.github.io/tentacolous/es/concepts/architecture-faq/)
 - [es/concepts/configuration.md](https://aimtone.github.io/tentacolous/es/concepts/configuration/)
 - [es/concepts/entity-mapping.md](https://aimtone.github.io/tentacolous/es/concepts/entity-mapping/)
 - [es/concepts/how-it-works.md](https://aimtone.github.io/tentacolous/es/concepts/how-it-works/)

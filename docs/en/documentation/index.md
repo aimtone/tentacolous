@@ -844,6 +844,71 @@ public class WebhookSink implements ChangeEventSink {
 
 A lower `order()` runs before the broker sinks.
 
+## Architecture FAQ {#architecture-faq}
+
+Condensed answers to the questions architects raise most often. The full version, with
+trade-off tables and every failure mode, is on the
+[Architecture FAQ](../concepts/architecture-faq.md) page.
+
+### Why use this instead of Debezium?
+
+Debezium reads the transaction log and needs Kafka Connect plus log-level database
+privileges. Tentacolous is a library: SQL triggers write an outbox row in the business
+transaction, a Spring poller reads it, and your annotated methods run in the same process.
+Choose Tentacolous for in-process reactions to external writes at moderate volume with no
+extra infrastructure; choose Debezium for high-volume, log-fidelity CDC (including
+`TRUNCATE` and transaction boundaries) with polyglot consumers. They can also coexist.
+
+### What guarantees do I get?
+
+- **No lost events.** The event row is written in the same transaction as the business
+  change: present if it commits, gone if it rolls back (transactional outbox).
+- **At-least-once** delivery to listeners and sinks, retried up to `max-attempts`.
+- **Per-record ordering.** Events are processed in `id` order; the Kafka sink keys records
+  by record key so a partition keeps that order.
+- **No exactly-once.** Listeners and consumers must be idempotent; deduplicate on
+  `eventId`.
+- **At-most-once dispatch per cycle.** Claiming is an atomic
+  `UPDATE ... WHERE id = ? AND status = 'PENDING'`, so two instances cannot both dispatch
+  one event.
+
+### What happens if the listener fails?
+
+The exception is caught and logged with the event id, entity, operation and method;
+`last_error` and `attempts` are stored; the row returns to `PENDING` for retry. After
+`max-attempts` it becomes `FAILED` and is left for you to inspect and replay — the
+`FAILED` rows are the dead-letter table. If several listeners share an entity + operation
+and one throws, dispatch stops and the whole event is retried, so every listener must be
+idempotent. A crash after claiming but before `PROCESSED` leaves the row in `PROCESSING`;
+the poller does not reap stale rows automatically, so monitor `processing_started_at` and
+reset them.
+
+### What about Kafka?
+
+Optional and off by default; listeners work with no broker. When enabled, the poller
+relays each event to every `ChangeEventSink` after the in-process listeners, in the same
+retry envelope — a transactional outbox to the broker without Kafka Connect. Records are
+keyed by record key for per-row ordering; delivery is at-least-once and consumers
+deduplicate on `tentacolous-event-id`. Implement `ChangeEventSink` for any other
+transport.
+
+### Can I capture tables without writing code?
+
+Yes. Declare a `@TentacolousCapture` annotation or a `Capture` bean and the change is
+forwarded to the sinks with no Java listener method, using the same operation selector,
+`exclude` and filters as the listener annotations. A capture still needs an entity/table
+declaration — Tentacolous does not scan undeclared tables.
+
+### How does it scale?
+
+Per instance, tune `poll-interval` (latency) and `batch-size` (throughput), and above all
+keep listeners fast: processing is single-threaded and sequential per instance. Several
+instances can run against the same database safely (atomic claim), but there is no
+work-stealing, so scale out through a Kafka sink rather than adding pollers. The design
+targets up to low thousands of events/second per instance; beyond that use log-based CDC.
+Budget for one extra row write per captured change and schedule archival of `PROCESSED`
+rows.
+
 ## Security {#security}
 
 - Do not store secrets in the payload.

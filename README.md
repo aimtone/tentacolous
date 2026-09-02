@@ -22,6 +22,7 @@
 - [Configuration](#configuration)
 - [Use Cases](#use-cases)
 - [Why Tentacolous?](#why-tentacolous)
+- [Architecture FAQ](#architecture-faq)
 - [Resources](#resources)
 
 ## Introduction
@@ -313,6 +314,59 @@ That means your listeners are executed even when the data is modified by:
 - A SQL script
 - A database administrator
 - Any external application connected to the same database
+
+## Architecture FAQ
+
+Short answers to the questions architects raise most often. The full version, with
+trade-off tables and failure-mode detail, is in
+[Architecture FAQ](https://aimtone.github.io/tentacolous/en/concepts/architecture-faq/).
+
+**Why use this instead of Debezium?**
+Debezium reads the transaction log and needs Kafka Connect plus log-level database
+privileges. Tentacolous is a library: SQL triggers write an outbox row, a Spring poller
+reads it, your annotated methods run in the same process. Pick Tentacolous for in-process
+reactions to external writes at moderate volume without extra infrastructure; pick
+Debezium for high-volume, log-fidelity CDC with polyglot consumers. They can also coexist.
+
+**What guarantees do I get?**
+The event row is written in the same transaction as the business change, so events are
+never lost on commit and never visible on rollback (transactional outbox). Delivery to
+listeners and sinks is **at-least-once** with automatic retry up to `max-attempts`.
+Per-record ordering is preserved (events processed in `id` order; Kafka records keyed by
+record key). There is no exactly-once — keep listeners idempotent and deduplicate on
+`eventId`.
+
+**What happens if the listener fails?**
+The exception is caught and logged, `last_error` and `attempts` are stored, and the event
+returns to `PENDING` for retry. After `max-attempts` it becomes `FAILED` and is left for
+you to inspect and replay (the `FAILED` rows are the dead-letter table). If several
+listeners share an entity + operation and one throws, dispatch stops and the whole event
+is retried, so all listeners must be idempotent. A crash after claiming but before
+`PROCESSED` leaves the row in `PROCESSING`; monitor and reset stale rows using
+`processing_started_at`.
+
+**What about Kafka?**
+Optional. Kafka and RabbitMQ are sinks that are off by default; listeners work with no
+broker. When enabled, the poller relays each event to every `ChangeEventSink` after the
+in-process listeners, in the same retry envelope — a transactional outbox to the broker
+without Kafka Connect. Records are keyed by record key for per-row ordering; consumers
+deduplicate on `tentacolous-event-id`. You can implement `ChangeEventSink` for any other
+transport.
+
+**Can I capture tables without writing code?**
+Yes. Declare a `@TentacolousCapture` annotation or a `Capture` bean and the change is
+forwarded to the sinks with no Java listener method. Captures take the same operation
+selector, `exclude`, and filters as the listener annotations. A capture still needs an
+entity/table declaration — it does not scan undeclared tables.
+
+**How does it scale?**
+Per instance: tune `poll-interval` (latency), `batch-size` (throughput), and above all
+keep listeners fast — processing is single-threaded and sequential per instance. Multiple
+instances can run against the same database safely (event claiming is an atomic
+conditional `UPDATE`), but there is no work-stealing, so scale out through a Kafka sink
+rather than adding pollers. The design targets up to low thousands of events/second per
+instance; beyond that use log-based CDC. Budget for one extra row write per captured
+change and set up archival of processed rows.
 
 ## Resources
 

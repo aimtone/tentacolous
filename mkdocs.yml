@@ -66,6 +66,7 @@ plugins:
                 - Mapeo de entidades: concepts/entity-mapping.md
                 - Cómo funciona: concepts/how-it-works.md
                 - Colas de mensajes: concepts/message-brokers.md
+                - Preguntas de arquitectura: concepts/architecture-faq.md
                 - Seguridad: concepts/security.md
                 - Producción: concepts/production.md
             - API:
@@ -127,6 +128,7 @@ nav:
       - Entity mapping: concepts/entity-mapping.md
       - How it works: concepts/how-it-works.md
       - Message brokers: concepts/message-brokers.md
+      - Architecture FAQ: concepts/architecture-faq.md
       - Security: concepts/security.md
       - Production: concepts/production.md
   - API:

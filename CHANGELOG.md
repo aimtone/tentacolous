@@ -27,6 +27,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - `spring-kafka` and `spring-boot-starter-amqp` are declared as optional dependencies; existing
   applications that do not use them are unaffected.
 
+### Documentation
+- Added an Architecture FAQ (English and Spanish) covering the Debezium comparison, delivery and
+  ordering guarantees, listener and crash failure modes, the Kafka/broker path, no-code captures,
+  scaling limits, database load, security, and the hard limitations.
+
 ## [0.2.0] - 2026-07-11
 
 ### Added

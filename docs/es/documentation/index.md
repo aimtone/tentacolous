@@ -844,6 +844,73 @@ public class WebhookSink implements ChangeEventSink {
 
 Un `order()` más bajo se ejecuta antes que los sinks de la cola.
 
+## Preguntas de arquitectura {#architecture-faq}
+
+Respuestas condensadas a las preguntas que mas plantean los arquitectos. La version
+completa, con tablas de compromisos y todos los modos de fallo, esta en la pagina
+[Preguntas de arquitectura](../concepts/architecture-faq.md).
+
+### Por que usar esto en lugar de Debezium?
+
+Debezium lee el log de transacciones y necesita Kafka Connect mas privilegios de log en la
+base. Tentacolous es una libreria: triggers SQL escriben una fila de outbox en la
+transaccion de negocio, un poller Spring la lee, y tus metodos anotados corren en el mismo
+proceso. Elige Tentacolous para reacciones en proceso ante escrituras externas a volumen
+moderado sin infraestructura extra; elige Debezium para CDC de alto volumen y fidelidad de
+log (incluyendo `TRUNCATE` y fronteras de transaccion) con consumidores poliglotas.
+Tambien pueden coexistir.
+
+### Que garantias tengo?
+
+- **Sin eventos perdidos.** La fila de evento se escribe en la misma transaccion que el
+  cambio de negocio: presente si hace commit, ausente si hace rollback (outbox
+  transaccional).
+- **Al-menos-una-vez** a listeners y sinks, con reintento hasta `max-attempts`.
+- **Orden por registro.** Los eventos se procesan en orden de `id`; el sink de Kafka usa
+  el record key como clave, asi que una particion mantiene ese orden.
+- **No exactly-once.** Listeners y consumidores deben ser idempotentes; deduplica por
+  `eventId`.
+- **Despacho a-lo-sumo-una-vez por ciclo.** Reclamar es un
+  `UPDATE ... WHERE id = ? AND status = 'PENDING'` atomico, asi que dos instancias no
+  pueden despachar el mismo evento.
+
+### Que ocurre si el listener falla?
+
+La excepcion se captura y se registra con el id del evento, entidad, operacion y metodo;
+se guardan `last_error` y `attempts`; la fila vuelve a `PENDING` para reintento. Tras
+`max-attempts` pasa a `FAILED` y queda para que la inspecciones y reproceses — las filas
+`FAILED` son la tabla de dead-letter. Si varios listeners comparten entidad + operacion y
+uno lanza excepcion, el despacho se detiene y el evento completo se reintenta, asi que todo
+listener debe ser idempotente. Un crash tras reclamar pero antes de `PROCESSED` deja la
+fila en `PROCESSING`; el poller no recolecta filas obsoletas automaticamente, asi que
+monitorea `processing_started_at` y reinicialas.
+
+### Que pasa con Kafka?
+
+Opcional y desactivado por defecto; los listeners funcionan sin broker. Al habilitarlo, el
+poller reenvia cada evento a todos los `ChangeEventSink` despues de los listeners en
+proceso, dentro del mismo esquema de reintentos — un outbox transaccional al broker sin
+Kafka Connect. Los records llevan como clave el record key para orden por fila; la entrega
+es al-menos-una-vez y los consumidores deduplican por `tentacolous-event-id`. Implementa
+`ChangeEventSink` para cualquier otro transporte.
+
+### Puedo capturar tablas sin escribir codigo?
+
+Si. Declara una anotacion `@TentacolousCapture` o un bean `Capture` y el cambio se reenvia
+a los sinks sin un metodo listener Java, con el mismo selector de operaciones, `exclude` y
+filtros que las anotaciones de listener. Un capture igual necesita una declaracion de
+entidad/tabla — Tentacolous no escanea tablas no declaradas.
+
+### Como escala?
+
+Por instancia, ajusta `poll-interval` (latencia) y `batch-size` (throughput), y sobre todo
+manten los listeners rapidos: el procesamiento es de un solo hilo y secuencial por
+instancia. Varias instancias pueden correr contra la misma base con seguridad (claim
+atomico), pero no hay work-stealing, asi que escala a lo ancho con un sink de Kafka en vez
+de agregar pollers. El diseno apunta a unos pocos miles de eventos por segundo por
+instancia; mas alla de eso usa CDC basado en log. Contempla una escritura de fila extra
+por cambio capturado y programa el archivado de filas `PROCESSED`.
+
 ## Seguridad {#security}
 
 - No guardes secretos en el payload.
