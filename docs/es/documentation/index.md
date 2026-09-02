@@ -850,7 +850,7 @@ Respuestas condensadas a las preguntas que mas plantean los arquitectos. La vers
 completa, con tablas de compromisos y todos los modos de fallo, esta en la pagina
 [Preguntas de arquitectura](../concepts/architecture-faq.md).
 
-### Por que usar esto en lugar de Debezium?
+### ¿Por que usar esto en lugar de Debezium?
 
 Debezium lee el log de transacciones y necesita Kafka Connect mas privilegios de log en la
 base. Tentacolous es una libreria: triggers SQL escriben una fila de outbox en la
@@ -860,7 +860,7 @@ moderado sin infraestructura extra; elige Debezium para CDC de alto volumen y fi
 log (incluyendo `TRUNCATE` y fronteras de transaccion) con consumidores poliglotas.
 Tambien pueden coexistir.
 
-### Que garantias tengo?
+### ¿Que garantias tengo?
 
 - **Sin eventos perdidos.** La fila de evento se escribe en la misma transaccion que el
   cambio de negocio: presente si hace commit, ausente si hace rollback (outbox
@@ -874,7 +874,7 @@ Tambien pueden coexistir.
   `UPDATE ... WHERE id = ? AND status = 'PENDING'` atomico, asi que dos instancias no
   pueden despachar el mismo evento.
 
-### Que ocurre si el listener falla?
+### ¿Que ocurre si el listener falla?
 
 La excepcion se captura y se registra con el id del evento, entidad, operacion y metodo;
 se guardan `last_error` y `attempts`; la fila vuelve a `PENDING` para reintento. Tras
@@ -885,7 +885,7 @@ listener debe ser idempotente. Un crash tras reclamar pero antes de `PROCESSED` 
 fila en `PROCESSING`; el poller no recolecta filas obsoletas automaticamente, asi que
 monitorea `processing_started_at` y reinicialas.
 
-### Que pasa con Kafka?
+### ¿Que pasa con Kafka?
 
 Opcional y desactivado por defecto; los listeners funcionan sin broker. Al habilitarlo, el
 poller reenvia cada evento a todos los `ChangeEventSink` despues de los listeners en
@@ -894,14 +894,14 @@ Kafka Connect. Los records llevan como clave el record key para orden por fila; 
 es al-menos-una-vez y los consumidores deduplican por `tentacolous-event-id`. Implementa
 `ChangeEventSink` para cualquier otro transporte.
 
-### Puedo capturar tablas sin escribir codigo?
+### ¿Puedo capturar tablas sin escribir codigo?
 
 Si. Declara una anotacion `@TentacolousCapture` o un bean `Capture` y el cambio se reenvia
 a los sinks sin un metodo listener Java, con el mismo selector de operaciones, `exclude` y
 filtros que las anotaciones de listener. Un capture igual necesita una declaracion de
 entidad/tabla — Tentacolous no escanea tablas no declaradas.
 
-### Como escala?
+### ¿Como escala?
 
 Por instancia, ajusta `poll-interval` (latencia) y `batch-size` (throughput), y sobre todo
 manten los listeners rapidos: el procesamiento es de un solo hilo y secuencial por

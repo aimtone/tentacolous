@@ -6,7 +6,7 @@ Tentacolous. Es deliberadamente directa sobre los compromisos. Si falta una preg
 
 ## Posicionamiento
 
-### Por que usar esto en lugar de Debezium?
+### ¿Por que usar esto en lugar de Debezium?
 
 Resuelven problemas que se solapan, pero con un costo operativo muy distinto.
 
@@ -33,7 +33,7 @@ el ecosistema de Kafka Connect.
 Tambien se combinan: hay equipos que usan Tentacolous para unas pocas tablas que
 disparan logica de aplicacion y mantienen Debezium para el pipeline analitico.
 
-### Esto es change-data-capture?
+### ¿Esto es change-data-capture?
 
 Es CDC basado en triggers con un [outbox transaccional](https://microservices.io/patterns/data/transactional-outbox.html).
 El trigger escribe la fila de evento en la **misma transaccion** que el cambio de negocio,
@@ -41,7 +41,7 @@ asi el evento nunca se pierde si la transaccion hace commit y nunca es visible s
 rollback. No es CDC basado en log, por lo que no ve cambios que el trigger no puede ver
 (ver [limitaciones](#cuales-son-las-limitaciones-duras)).
 
-### El polling no esta obsoleto? Por que no `LISTEN/NOTIFY` o un modelo push?
+### ¿El polling no esta obsoleto? ¿Por que no `LISTEN/NOTIFY` o un modelo push?
 
 Consultar una unica tabla indexada cada 1 segundo es barato y portable entre los seis
 motores soportados. Un modelo push (`LISTEN/NOTIFY`, `SqlTableDependency`, etc.) es
@@ -52,7 +52,7 @@ polling con tabla durable te da replay, reintentos y back-pressure gratis. Baja
 
 ## Garantias
 
-### Que garantias tengo?
+### ¿Que garantias tengo?
 
 - **Durabilidad / sin eventos perdidos.** El evento se escribe en la transaccion de
   negocio. Si el `COMMIT` de negocio tiene exito, el evento existe. Si hace rollback, el
@@ -70,7 +70,7 @@ polling con tabla durable te da replay, reintentos y back-pressure gratis. Baja
   `UPDATE ... WHERE id = ? AND status = 'PENDING'` atomico, asi que dos instancias o dos
   ciclos no pueden despachar el mismo evento.
 
-### Los eventos se entregan en orden de transaccion? Y con escritores concurrentes?
+### ¿Los eventos se entregan en orden de transaccion? ¿Y con escritores concurrentes?
 
 Los eventos se ordenan por el `id` generado de la tabla de eventos. Con transacciones
 concurrentes el `id` se asigna cuando se dispara el trigger, es decir al momento de la
@@ -79,7 +79,7 @@ tras el commit. El poller lee las filas ya commiteadas en orden de `id`. El orde
 registros distintos es best-effort; el orden **por registro** es confiable porque los
 cambios de un mismo registro se serializan por los locks de fila de la tabla origen.
 
-### El payload es un snapshot consistente de la fila?
+### ¿El payload es un snapshot consistente de la fila?
 
 Si, para la fila que cambio. `payload` es la imagen de fila que vio el trigger (la fila
 nueva para `INSERT`/`UPDATE`, la fila eliminada para `DELETE`); `old_payload` es la
@@ -87,7 +87,7 @@ imagen previa para `UPDATE`. Es un snapshot de una sola fila, no una vista consi
 multi-tabla. Si necesitas datos relacionados, ensancha la entidad o cargalos en el
 listener (asumiendo que ya reflejan un estado ligeramente posterior).
 
-### En que contexto transaccional corre un listener?
+### ¿En que contexto transaccional corre un listener?
 
 Los listeners corren en el hilo y la transaccion del **poller**, *despues* de que la
 transaccion de negocio ya hizo commit. No forman parte de la transaccion original y no
@@ -96,7 +96,7 @@ escrituras hacen rollback y el evento se reintenta; el cambio de negocio queda c
 
 ## Manejo de fallos
 
-### Que ocurre si el listener falla?
+### ¿Que ocurre si el listener falla?
 
 1. La excepcion se captura y se registra con el id del evento, entidad, operacion y metodo.
 2. Se guarda `last_error` en la fila del evento y se incrementa `attempts`.
@@ -109,7 +109,7 @@ la misma entidad + operacion y uno lanza excepcion, el despacho de ese evento se
 (los listeners posteriores en `order` no corren) y el evento completo se reintenta, por lo
 que los listeners anteriores tambien vuelven a correr.
 
-### Que pasa si la aplicacion se cae a mitad del procesamiento?
+### ¿Que pasa si la aplicacion se cae a mitad del procesamiento?
 
 - Crash **antes de reclamar**: el evento sigue `PENDING`, se toma en el siguiente arranque.
 - Crash **despues de reclamar, antes de `PROCESSED`**: la fila queda en `PROCESSING`. El
@@ -121,7 +121,7 @@ que los listeners anteriores tambien vuelven a correr.
 - Los datos de negocio nunca se ven afectados por esto: la fila del outbox es lo unico en
   vuelo.
 
-### Que hago con los eventos `FAILED`?
+### ¿Que hago con los eventos `FAILED`?
 
 Monitorea el conteo (`SELECT count(*) FROM db_change_event WHERE status = 'FAILED'`) y
 alerta sobre el. La recuperacion es una decision manual o con script: corrige la causa
@@ -129,14 +129,14 @@ raiz y luego devuelve las filas a `PENDING` (y `attempts = 0`) para reprocesarla
 archivalas. Tentacolous no tiene una dead-letter queue; las filas `FAILED` *son* la tabla
 de dead-letter.
 
-### Que pasa si la base de datos esta caida?
+### ¿Que pasa si la base de datos esta caida?
 
 El ciclo del poller lanza excepcion, se registra, y el siguiente ciclo reintenta. Nada se
 pierde: los eventos no escritos nunca se commitearon (la transaccion de negocio tambien
 fallo), y los eventos no procesados siguen `PENDING`. Cuando la base vuelve, el backlog se
 drena en orden de `id`.
 
-### Un listener lento bloquea todo?
+### ¿Un listener lento bloquea todo?
 
 Si. El procesamiento es de un solo hilo por instancia y secuencial dentro de un lote. Un
 listener que tarda 5 segundos limita todo el pipeline a ~12 eventos/minuto en esa
@@ -146,13 +146,13 @@ instancia. Manten los cuerpos de listener rapidos; para trabajo pesado, delega a
 
 ## Kafka y colas de mensajes
 
-### Que pasa con Kafka? Lo necesito?
+### ¿Que pasa con Kafka? ¿Lo necesito?
 
 No. Kafka (y RabbitMQ) son **sinks opcionales**, desactivados por defecto. Los listeners
 funcionan sin ningun broker. Habilita un sink cuando quieras que los cambios salgan del
 proceso: para otros servicios, otros lenguajes, o un backbone de eventos.
 
-### Como funciona el camino a Kafka?
+### ¿Como funciona el camino a Kafka?
 
 El poller entrega cada evento a todos los `ChangeEventSink` registrados despues de correr
 los listeners en proceso, dentro del mismo esquema de reintentos. El sink nativo de Kafka:
@@ -169,20 +169,20 @@ Como el sink corre despues de una transaccion commiteada y se reintenta ante fal
 entrega al broker es **al-menos-una-vez**; los consumidores deduplican por
 `tentacolous-event-id`.
 
-### Esto es un outbox transaccional hacia Kafka?
+### ¿Esto es un outbox transaccional hacia Kafka?
 
 Si. La fila de evento se escribe en la transaccion de negocio; el relay a Kafka es un paso
 aparte con reintento. Es el patron estandar outbox-a-broker, sin Kafka Connect. El costo
 frente a Debezium es el throughput y el hecho de que el relay es tu proceso de aplicacion.
 
-### Que orden / entrega ve el consumidor del broker?
+### ¿Que orden / entrega ve el consumidor del broker?
 
 Al-menos-una-vez, ordenado por registro dentro de una particion (los records llevan como
 clave el record key). Sin orden global entre registros. Sin exactly-once hacia el
 consumidor salvo que el consumidor lo implemente (escrituras idempotentes o una tabla de
 ids procesados).
 
-### Puedo usar Kafka y RabbitMQ a la vez, o mi propio transporte?
+### ¿Puedo usar Kafka y RabbitMQ a la vez, o mi propio transporte?
 
 Si. Habilitar ambos registra ambos sinks y cada evento va a los dos (cada uno reintentado
 como unidad, asi que ambos pueden ver una re-entrega). Para cualquier otra cosa,
@@ -191,7 +191,7 @@ interno. `order()` controla la posicion relativa a los sinks integrados.
 
 ## Incorporar tablas
 
-### Puedo capturar tablas sin escribir codigo?
+### ¿Puedo capturar tablas sin escribir codigo?
 
 Si, con un **capture**. Crea el trigger y reenvia el cambio a los sinks sin un metodo
 listener Java. Dos estilos equivalentes:
@@ -224,13 +224,13 @@ Un capture igual necesita una clase de entidad (o `entityName` + resolucion de t
 que Tentacolous sepa el nombre de la tabla, la columna clave y el conjunto de columnas. No
 escanea tablas arbitrarias que no hayas declarado.
 
-### Necesito una entidad JPA?
+### ¿Necesito una entidad JPA?
 
 Necesitas una clase que Tentacolous pueda mapear a un nombre de tabla y una clave. Una
 `@Entity` JPA con `@Table` / `@Id` es el caso comun; el nombre de clase en snake_case y
 una columna `id` son el fallback. `exclude` recorta columnas del payload.
 
-### Y las tablas de otro equipo o un esquema legacy?
+### ¿Y las tablas de otro equipo o un esquema legacy?
 
 Ese es el caso de uso principal: Tentacolous reacciona a escrituras de cualquier origen.
 Necesitas el privilegio de agregar un trigger a esa tabla, y deberias coordinar: un
@@ -239,7 +239,7 @@ trigger es visible para el dueno de la tabla y corre en sus escrituras. Usa
 
 ## Escalabilidad y operacion
 
-### Como escala?
+### ¿Como escala?
 
 Verticalmente por instancia, y horizontalmente con matices.
 
@@ -264,7 +264,7 @@ muchos workers o throughput muy alto, reenvia a Kafka y escala consumidores alli
 pocos miles de eventos por segundo por instancia con listeners ligeros, limitado por la
 tasa de insert y update de la tabla de eventos. Mas alla de eso, usa CDC basado en log.
 
-### Cual es la carga sobre la base de datos origen?
+### ¿Cual es la carga sobre la base de datos origen?
 
 - **Escrituras:** cada `INSERT`/`UPDATE`/`DELETE` capturado en una tabla observada hace un
   `INSERT` extra en la tabla de eventos dentro de la misma transaccion. Aproximadamente
@@ -279,14 +279,14 @@ tasa de insert y update de la tabla de eventos. Mas alla de eso, usa CDC basado 
   listeners con historial leen filas pasadas del mismo registro, asi que conserva
   suficiente retencion para cubrir el historial mas profundo que uses.
 
-### Cuanta latencia hay desde el cambio hasta el listener?
+### ¿Cuanta latencia hay desde el cambio hasta el listener?
 
 Aproximadamente `poll-interval` en promedio (la mitad mas el tiempo de procesamiento), o
 sea ~0.5-1 s con los valores por defecto. Baja `poll-interval` a `100ms`-`250ms` para
 casi tiempo real a costa de mas consultas ociosas. No es sub-milisegundo; si necesitas
 eso, esta no es la herramienta.
 
-### Puedo correrlo con alta disponibilidad?
+### ¿Puedo correrlo con alta disponibilidad?
 
 Si. Corre N instancias; si una muere las demas siguen haciendo polling y reclamando. No
 hay eleccion de lider ni split brain porque las reclamaciones son atomicas. Durante un
@@ -294,7 +294,7 @@ despliegue rolling, un evento en `PROCESSING` en la instancia que se apaga neces
 manejo de filas obsoletas descrito en
 [manejo de fallos](#que-pasa-si-la-aplicacion-se-cae-a-mitad-del-procesamiento).
 
-### Como lo observo?
+### ¿Como lo observo?
 
 - La tabla `db_change_event` es la fuente de verdad: consulta conteos por `status`, el
   `PENDING` mas antiguo, filas en `PROCESSING` pasado un umbral, `FAILED` con `last_error`.
@@ -304,7 +304,7 @@ manejo de filas obsoletas descrito en
 - Todavia no hay metricas Micrometer integradas; envuelve un `ChangeEventSink` o una
   consulta programada si quieres gauges.
 
-### Como lo revierto o lo apago?
+### ¿Como lo revierto o lo apago?
 
 Pon `tentacolous.enabled: false` y el poller no arranca. Los triggers siguen escribiendo
 en la tabla de eventos (inofensivo, solo crecimiento) hasta que los elimines. Para
@@ -312,7 +312,7 @@ quitarlo del todo: para la app, dropea los triggers y la funcion, dropea la tabl
 eventos. Como los listeners son beans Spring normales y la libreria es un unico JAR con
 dependencias de broker opcionales, no hay plataforma que desmantelar.
 
-### Genera lock-in?
+### ¿Genera lock-in?
 
 Bajo lock-in. Las anotaciones son la unica superficie especifica de Tentacolous en tu
 codigo, y envuelven metodos ordinarios. La tabla de eventos es una tabla SQL normal que
@@ -322,7 +322,7 @@ consumidores.
 
 ## Seguridad
 
-### Cuales son las consideraciones de seguridad?
+### ¿Cuales son las consideraciones de seguridad?
 
 - La tabla de eventos guarda los payloads de fila como JSON. Tratala como si contuviera la
   misma clasificacion de datos que las tablas origen. Usa `exclude` para descartar
@@ -338,7 +338,7 @@ Ver [Seguridad](security.md).
 
 ## Limitaciones
 
-### Cuales son las limitaciones duras?
+### ¿Cuales son las limitaciones duras?
 
 - **Solo cambios visibles para el trigger.** `TRUNCATE` no dispara triggers de fila en la
   mayoria de motores; algunos caminos de carga masiva y el apply de replicacion pueden
